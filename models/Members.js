@@ -20,12 +20,12 @@ const memberSchema = new mongoose.Schema({
     required:true,
     unique:true
   },
-  address:[
-    {city:String},
-    {pincode:String},
-    {state:String},
-    {country:String}
-  ],
+  address:{
+    city:String,
+    pincode:String,
+    state:String,
+    country:String
+  },
 }, { timestamps: true });
 
 
