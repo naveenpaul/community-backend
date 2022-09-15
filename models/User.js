@@ -1,59 +1,81 @@
-const bcrypt = require('@node-rs/bcrypt');
-const crypto = require('crypto');
-const mongoose = require('mongoose');
+const bcrypt = require("bcrypt");
+const crypto = require("crypto");
+const mongoose = require("mongoose");
+const commonUtility = require("../common/commonUtility");
+const common = new commonUtility();
 
 const userSchema = new mongoose.Schema({
-  email: { type: String, unique: true },
+  firstName: String,
+  lastName: String,
+  fullName: String,
+  emailId: { type: String, unique: true },
   password: String,
-  passwordResetToken: String,
-  passwordResetExpires: Date,
-  emailVerificationToken: String,
-  emailVerified: Boolean,
-
-  snapchat: String,
-  facebook: String,
-  twitter: String,
-  google: String,
-  github: String,
-  instagram: String,
-  linkedin: String,
-  steam: String,
-  twitch: String,
-  quickbooks: String,
-  tokens: Array,
-
-  profile: {
-    name: String,
-    gender: String,
-    location: String,
-    website: String,
-    picture: String
-  }
-}, { timestamps: true });
+  profilePicUrl: String,
+  designation: String,
+  mobileNumber: String,
+  address: String,
+  country: String,
+  state: String,
+  city: String,
+  createdAt: Date,
+  updatedAt: Date,
+  registeredWith: {
+    type: String,
+    enum: ["emailId", "mobileNumber", "gmail"],
+  },
+});
 
 /**
  * Password hash middleware.
  */
-userSchema.pre('save', async function save(next) {
+userSchema.pre("save", function save(next) {
   const user = this;
-  if (!user.isModified('password')) { return next(); }
-  try {
-    user.password = await bcrypt.hash(user.password, 10);
-    next();
-  } catch (err) {
-    next(err);
+
+  if (!user.fullName) {
+    user.fullName = `${user.firstName} ${user.lastName}`;
   }
+
+  user.profilePicUrl =
+    user.profilePicUrl || common.generateImg(user.fullName, 2);
+  if (user.registeredWith == "gmail") {
+    return next();
+  }
+
+  user.createdAt = new Date();
+
+  if (!user.isModified("password")) {
+    return next();
+  }
+
+  bcrypt.genSalt(10, (err, salt) => {
+    if (err) {
+      return next(err);
+    }
+    bcrypt.hash(user.password, salt, (err, hash) => {
+      if (err) {
+        return next(err);
+      }
+      user.password = hash;
+      next();
+    });
+  });
 });
 
 /**
  * Helper method for validating user's password.
  */
-userSchema.methods.comparePassword = async function comparePassword(candidatePassword, cb) {
-  try {
-    cb(null, await bcrypt.verify(candidatePassword, this.password));
-  } catch (err) {
-    cb(err);
-  }
+userSchema.methods.comparePassword = function comparePassword(
+  candidatePassword,
+  cb
+) {
+  bcrypt.compare(candidatePassword, this.password, (err, isMatch) => {
+    cb(err, isMatch);
+  });
+
+  // if (this.registeredWith == 'gmail') {
+  //   cb(null, true);
+  // } else {
+  // }
 };
 
 /**
@@ -66,10 +88,9 @@ userSchema.methods.gravatar = function gravatar(size) {
   if (!this.email) {
     return `https://gravatar.com/avatar/?s=${size}&d=retro`;
   }
-  const md5 = crypto.createHash('md5').update(this.email).digest('hex');
+  const md5 = crypto.createHash("md5").update(this.email).digest("hex");
   return `https://gravatar.com/avatar/${md5}?s=${size}&d=retro`;
 };
 
-const User = mongoose.model('User', userSchema);
-
+const User = mongoose.model("user", userSchema);
 module.exports = User;

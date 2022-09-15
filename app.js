@@ -3,14 +3,19 @@
  */
 const express = require("express");
 const compression = require("compression");
+const session = require("express-session");
 const bodyParser = require("body-parser");
 const logger = require("morgan");
 const chalk = require("chalk");
 const errorHandler = require("errorhandler");
+// const lusca = require('lusca');
 const dotenv = require("dotenv");
+const MongoStore = require("connect-mongo")(session);
 const flash = require("express-flash");
 const path = require("path");
 const mongoose = require("mongoose");
+const passport = require("passport");
+// const sass = require('node-sass-middleware');
 const multer = require("multer");
 const upload = multer({ dest: path.join(__dirname, "uploads") }).any();
 
@@ -22,7 +27,25 @@ dotenv.config({ path: ".env.example" });
 /**
  * Controllers (route handlers).
  */
+const homeController = require("./controllers/home");
+const userController = require("./controllers/user");
+const apiController = require("./controllers/api");
+const contactController = require("./controllers/contact");
 const login = require("./routes/login");
+const user = require("./routes/user");
+const teams = require("./routes/teams");
+const templates = require("./routes/templates");
+const projects = require("./routes/projects");
+const tasks = require("./routes/tasks");
+const escalations = require("./routes/escalations");
+const payments = require("./routes/payments");
+const activityLogs = require("./routes/activityLogs");
+const files = require("./routes/files");
+const dashboard = require("./routes/dashboard");
+const inventory = require("./routes/inventory");
+const form = require("./routes/form");
+const assessment = require("./routes/assessment");
+const superadmin = require("./routes/superadmin");
 
 /**
  * API keys and Passport configuration.
@@ -42,6 +65,9 @@ mongoose.set("useCreateIndex", true);
 mongoose.set("useNewUrlParser", true);
 mongoose.set("useUnifiedTopology", true);
 mongoose.connect(process.env.MONGODB_URI);
+// mongoose.connect(
+//   "mongodb://workspaceAdmin:vcxz7890@localhost:27017/oasis?authSource=admin"
+// );
 mongoose.connection.on("error", (err) => {
   console.error(err);
   console.log(
@@ -78,8 +104,21 @@ app.disable("x-powered-by");
 
 
 app.use("/", login);
-
-app.use(express.static(path.join(__dirname, "downloads")));
+app.use("/", user);
+app.use("/", teams);
+app.use("/", templates);
+app.use("/", projects);
+app.use("/", tasks);
+app.use("/", escalations);
+app.use("/", payments);
+app.use("/", activityLogs);
+app.use("/", files);
+app.use("/", dashboard);
+app.use("/", inventory);
+app.use("/", form);
+app.use("/", assessment);
+app.use("/", superadmin);
+app.use(express.static(path.join(__dirname, 'downloads')));
 
 /**
  * Error Handler.

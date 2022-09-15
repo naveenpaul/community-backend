@@ -43,7 +43,7 @@ function sendLoginResponse(res, user) {
     msg: "User logged in successfully",
   });
 
-  activityLogController.insertLogs({}, user._id, "login", "read", user);
+  activityLogController.insertLogs( {}, user._id, "login", "read", user);
 }
 
 function handleUserLogin(req, res) {
@@ -71,8 +71,9 @@ function handleUserLogin(req, res) {
     if (err || !existingUser) {
       common.sendErrorResponse(res, "User is not present, Please sign up");
     } else {
-      if (req.body.loginWith == "google") {
+      if (req.body.loginWith == 'google') {
         sendLoginResponse(res, existingUser);
+
       } else {
         existingUser.comparePassword(password, (passwordErr, isMatch) => {
           if (isMatch) {
