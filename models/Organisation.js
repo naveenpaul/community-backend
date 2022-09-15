@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
 
 const organisationSchema = new mongoose.Schema({
-  orgName:{
+  name:{
     type:String,
     required:true,
     unique:true
   },
-  orgEmail:{
+  email:{
     type:String,
     required:true,
     unique:true
@@ -15,24 +15,19 @@ const organisationSchema = new mongoose.Schema({
     type:String,
     required:true
   },
-  orgId:{
-    type:Number,
-    required:true,
-    unique:true
-  },
   address:{
     city:String,
     pincode:String,
     state:String,
     country:String
   },
+  createdAt:Date,
+  updatedAt:Date,
   isAdmin:{
     type:Boolean,
     default:true,
   },
-  orgType:{
-    type:String,
-  }
+  
 }, { timestamps: true });
 
 

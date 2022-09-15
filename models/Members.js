@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
 
 const memberSchema = new mongoose.Schema({
-  memberName:{
+  name:{
     type:String,
     required:true,
     unique:true
   },
-  memberEmail:{
+  email:{
     type:String,
     required:true,
     unique:true
@@ -15,17 +15,14 @@ const memberSchema = new mongoose.Schema({
     type:String,
     required:true
   },
-  memberId:{
-    type:Number,
-    required:true,
-    unique:true
-  },
   address:{
     city:String,
     pincode:String,
     state:String,
     country:String
   },
+  createdAt:Date,
+  updatedAt:Date,
 }, { timestamps: true });
 
 
