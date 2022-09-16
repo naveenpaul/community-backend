@@ -8,11 +8,11 @@ const userSchema = new mongoose.Schema({
   firstName: String,
   lastName: String,
   fullName: String,
-  emailId: { type: String, unique: true },
-  password: String,
+  emailId: String,
   profilePicUrl: String,
+  mobileNumber: { type: String, unique: true },
+  password: String,
   designation: String,
-  mobileNumber: String,
   address: String,
   country: String,
   state: String,
@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema({
   updatedAt: Date,
   registeredWith: {
     type: String,
-    enum: ["emailId", "mobileNumber", "gmail"],
+    enum: ["EMAILID", "MOBILENUMBER", "GMAIL", "FACEBOOK"],
   },
 });
 
@@ -71,11 +71,6 @@ userSchema.methods.comparePassword = function comparePassword(
   bcrypt.compare(candidatePassword, this.password, (err, isMatch) => {
     cb(err, isMatch);
   });
-
-  // if (this.registeredWith == 'gmail') {
-  //   cb(null, true);
-  // } else {
-  // }
 };
 
 /**

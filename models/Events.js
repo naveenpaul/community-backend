@@ -1,31 +1,45 @@
-const mongoose = require('mongoose');
-
-const memberSchema = new mongoose.Schema({
-  name:{
-    type:String,
-    required:true,
-    unique:true
+const mongoose = require("mongoose");
+const memberSchema = new mongoose.Schema(
+  {
+    createdAt: Date,
+    updatedAt: Date,
+    orgId: mongoose.Schema.Types.ObjectId,
+    orgName: String,
+    name: String,
+    description: String,
+    location: String,
+    startDate: Date,
+    endDate: Date,
+    address: {
+      name: String,
+      city: String,
+      pincode: String,
+      state: String,
+      country: String,
+    },
+    type: {
+      type: String,
+      enum: ["ONLINE", "OFFLINE"],
+    },
+    likes: [
+      {
+        fullName: String,
+        profilePicUrl: String,
+        memberId: mongoose.Schema.Types.ObjectId,
+        date: Date,
+      },
+    ],
+    comments: [
+      {
+        fullName: String,
+        profilePicUrl: String,
+        memberId: mongoose.Schema.Types.ObjectId,
+        date: Date,
+        isStaff: Boolean,
+      },
+    ],
   },
-  email:{
-    type:String,
-    required:true,
-    unique:true
-  },
-  password:{
-    type:String,
-    required:true
-  },
-  address:{
-    city:String,
-    pincode:String,
-    state:String,
-    country:String
-  },
-  createdAt:Date,
-  updatedAt:Date,
-}, { timestamps: true });
-
-
-const Member = mongoose.model('Member', memberSchema);
-
-module.exports = Member;
+  { timestamps: true }
+);
+const Members = mongoose.model("members", memberSchema);
+module.exports = Members;

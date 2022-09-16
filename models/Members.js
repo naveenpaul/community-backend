@@ -1,31 +1,29 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const memberSchema = new mongoose.Schema({
-  name:{
-    type:String,
-    required:true,
-    unique:true
+const memberSchema = new mongoose.Schema(
+  {
+    firstName: String,
+    lastName: String,
+    fullName: String,
+    profilePicUrl: String,
+    emailId: String,
+    mobileNumber: String,
+    createdAt: Date,
+    updatedAt: Date,
+    orgId: mongoose.Schema.Types.ObjectId,
+    isApproved: Boolean,
+    approvedBy: {
+      emailId: String,
+      fullName: String,
+    },
+    approvedDate: Date,
+    joiningDate: Date,
+    joiningRequestedDate: Date,
+    lastActiveDate: Date,
   },
-  email:{
-    type:String,
-    required:true,
-    unique:true
-  },
-  password:{
-    type:String,
-    required:true
-  },
-  address:{
-    city:String,
-    pincode:String,
-    state:String,
-    country:String
-  },
-  createdAt:Date,
-  updatedAt:Date,
-}, { timestamps: true });
+  { timestamps: true }
+);
 
+const Members = mongoose.model("members", memberSchema);
 
-const Member = mongoose.model('Member', memberSchema);
-
-module.exports = Member;
+module.exports = Members;

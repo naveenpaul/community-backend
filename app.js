@@ -27,24 +27,9 @@ dotenv.config({ path: ".env.example" });
 /**
  * Controllers (route handlers).
  */
-const homeController = require("./controllers/home");
-const userController = require("./controllers/user");
-const apiController = require("./controllers/api");
-const contactController = require("./controllers/contact");
 const login = require("./routes/login");
-const user = require("./routes/user");
-const teams = require("./routes/teams");
-const templates = require("./routes/templates");
-const projects = require("./routes/projects");
-const tasks = require("./routes/tasks");
-const escalations = require("./routes/escalations");
-const payments = require("./routes/payments");
 const activityLogs = require("./routes/activityLogs");
 const files = require("./routes/files");
-const dashboard = require("./routes/dashboard");
-const inventory = require("./routes/inventory");
-const form = require("./routes/form");
-const assessment = require("./routes/assessment");
 const superadmin = require("./routes/superadmin");
 
 /**
@@ -99,26 +84,13 @@ app.use(upload);
 app.use(allowCrossDomain);
 app.use(flash());
 
-
 app.disable("x-powered-by");
 
-
 app.use("/", login);
-app.use("/", user);
-app.use("/", teams);
-app.use("/", templates);
-app.use("/", projects);
-app.use("/", tasks);
-app.use("/", escalations);
-app.use("/", payments);
 app.use("/", activityLogs);
 app.use("/", files);
-app.use("/", dashboard);
-app.use("/", inventory);
-app.use("/", form);
-app.use("/", assessment);
 app.use("/", superadmin);
-app.use(express.static(path.join(__dirname, 'downloads')));
+app.use(express.static(path.join(__dirname, "downloads")));
 
 /**
  * Error Handler.

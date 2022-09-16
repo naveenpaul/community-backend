@@ -1,23 +1,18 @@
-
-const mongoose = require('mongoose');
-
-const filesSchema = new mongoose.Schema({
-  sourceId: String,
-  source: {
+const mongoose = require("mongoose");
+const filesSchema = new mongoose.Schema(
+  {
+    source: {
+      type: String,
+      enum: ["EVENT", "POST", "USERPROFILE"],
+    },
+    orgId: mongoose.Schema.Types.ObjectId,
+    ownerId: mongoose.Schema.Types.ObjectId,
     type: String,
-    enum: ['project', 'team', 'task', 'escalation', 'payment', 'inventory', 'userProfile']
+    fileName: String,
+    location: String,
   },
-  projectId: String,
-  sectionId: String,
-  type: String,
-  fileName: String,
-  uniqFileName: String,
-  tag: {
-    tagName: String,
-    color: String
-  }
-}, { timestamps: true });
+  { timestamps: true }
+);
 
-const Files = mongoose.model('files', filesSchema);
-
+const Files = mongoose.model("files", filesSchema);
 module.exports = Files;

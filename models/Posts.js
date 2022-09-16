@@ -1,30 +1,36 @@
-const mongoose = require('mongoose');
-
-const postsSchema = new mongoose.Schema({
-  orgname:{
-    type:String,
-    required:true,
-    unique:true
+const mongoose = require("mongoose");
+const postsSchema = new mongoose.Schema(
+  {
+    createdAt: Date,
+    updatedAt: Date,
+    orgId: mongoose.Schema.Types.ObjectId,
+    orgName: String,
+    name: String,
+    type: {
+      type: String,
+      enum: ["TEXT", "IMG", "VIDEO"],
+    },
+    likes: [
+      {
+        fullName: String,
+        profilePicUrl: String,
+        memberId: mongoose.Schema.Types.ObjectId,
+        date: Date,
+      },
+    ],
+    comments: [
+      {
+        fullName: String,
+        profilePicUrl: String,
+        memberId: mongoose.Schema.Types.ObjectId,
+        date: Date,
+        isStaff: Boolean,
+      },
+    ],
   },
-  post:[],
-  
-  likes:[],
+  { timestamps: true }
+);
 
-  comments:[],
+const Posts = mongoose.model("posts", postsSchema);
 
-  share:[],
-
-  createdAt:{
-    type:Date,
-    default:Date.now,
-  },
-  updatedAt:{
-    type:Date,
-    default:Date.now,
-  },
-}, { timestamps: true });
-
-
-const Post = mongoose.model('Post', postsSchema);
-
-module.exports = Post;
+module.exports = Posts;
