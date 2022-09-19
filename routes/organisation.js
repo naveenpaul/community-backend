@@ -1,16 +1,17 @@
 const express = require("express");
 const router = express.Router();
 const async = require("async");
-const user = require("../controllers/user");
 const commonUtility = require("../common/commonUtility");
 const organisation = require("../controllers/organisation");
 
-const userController = new user();
+
 const common = new commonUtility();
 const orgController = new organisation();
 
 router.post("/organisation/create", common.authorizeUser, handleOrgCreate);
 router.post("/organisation/update", common.authorizeUser, handleOrgUpdate);
+router.get("/organisation/search", common.authorizeUser, handleOrgSearch);
+router.delete("/organisation/delete/:id", common.authorizeUser, handleOrgDelete);
 
 
 
@@ -19,7 +20,7 @@ function handleOrgCreate(req, res) {
 
   const userId = common.getUserId(req) || "";
 
-  userController.findUserByUserId(
+  orgController.findUserByUserId(
     common.castToObjectId(userId),
     null,
     (err, existingUser) => {
@@ -41,8 +42,25 @@ function handleOrgCreate(req, res) {
 function handleOrgUpdate(req, res) {
   const orgId = common.getOrgId(req) || "";
 
-  userController.updateUserDetails(req, res, orgId);
+  orgController.updateOrgDetails(req, res, orgId);
 }
 
+//Organisation Update Handler
+function handleOrgSearch(req, res) {
+  const searchQuery = req.query.searchQuery;
+
+  orgController.searchOrg(searchQuery, (organisations) => {
+    res.send({
+      organisation: organisations,
+    });
+  });
+}
+
+//Organisation Delete Handler
+function handleOrgDelete(req,res){
+  const orgId = common.getOrgId(req);
+
+  orgController.deleteOrg(req,res, orgId);
+}
 
 module.exports = router;

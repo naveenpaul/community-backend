@@ -1,9 +1,10 @@
- 
+const { promisify } = require("util");
+const crypto = require("crypto");
 const _ = require("lodash");
 const Organisation = require("../models/Organisation");
 const commonUtility = require("../common/commonUtility");
 const common = new commonUtility();
-
+const randomBytesAsync = promisify(crypto.randomBytes);
 
 
 function OrgController() {}
@@ -78,4 +79,32 @@ OrgController.prototype.updateOrgDetails = (req, res, orgId) => {
       }
     );
   };
+
+  //Search Organisation
+  OrgController.prototype.searchOrg = (searchQuery, callback) => {
+    Organisation.find({
+      $text: {
+        $search: searchQuery,
+        $caseSensitive: false,
+      },
+    })
+      .lean()
+      .exec((organisationsErr, organisations) => {
+        if (organisationsErr) {
+          console.log("Error in getting users");
+        }
+        callback(organisations || []);
+      });
+  };
+
+
+  //Delete Organisation
+  OrgController.prototype.deleteOrg = async (req,res, orgId) =>{
+    try{
+         await Organisation.findByIdAndDelete(req.params.id);
+        res.status(200).json("Organisation has been Deleted");
+       } catch(err){
+        next(err);
+       }
+}
 module.exports = OrgController;
