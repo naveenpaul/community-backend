@@ -1,3 +1,5 @@
+
+
 /**
  * Module dependencies.
  */
@@ -28,6 +30,8 @@ dotenv.config({ path: ".env.example" });
  * Controllers (route handlers).
  */
 const login = require("./routes/login");
+const organisation = require("./routes/organisation");
+const user = require("./routes/user");
 const activityLogs = require("./routes/activityLogs");
 const files = require("./routes/files");
 const superadmin = require("./routes/superadmin");
@@ -85,8 +89,9 @@ app.use(allowCrossDomain);
 app.use(flash());
 
 app.disable("x-powered-by");
-
 app.use("/", login);
+app.use("/", organisation)
+app.use("/", user)
 app.use("/", activityLogs);
 app.use("/", files);
 app.use("/", superadmin);

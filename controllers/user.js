@@ -238,7 +238,7 @@ exports.getSignup = (req, res) => {
  * POST /signup
  * Create a new local account.
  */
-exports.postSignup = (req, res, next) => {
+ exports.postSignup = (req, res, next) => {
   const validationErrors = [];
   if (!validator.isEmail(req.body.email))
     validationErrors.push({ msg: "Please enter a valid email address." });
@@ -258,7 +258,17 @@ exports.postSignup = (req, res, next) => {
   });
 
   const user = new User({
-    email: req.body.email,
+    firstName:req.body.firstName,
+    lasttName:req.body.lasttName,
+    fullName:req.body.fullName,
+    emailId:req.body.emailId,
+    profilePicUrl:req.body.profilePicUrl,
+    mobileNumber:req.body.mobileNumber,
+    designation:req.body.designation,
+    address:req.body.address,
+    country:req.body.country,
+    state:req.body.state,
+    city:req.body.city,
     password: req.body.password,
   });
 

@@ -5,10 +5,10 @@ const postsSchema = new mongoose.Schema(
     updatedAt: Date,
     orgId: mongoose.Schema.Types.ObjectId,
     orgName: String,
-    name: String,
+    title: String,
     type: {
       type: String,
-      enum: ["TEXT", "IMG", "VIDEO"],
+      enum: ["TEXT", "IMG", "VIDEO","POLL"],
     },
     likes: [
       {

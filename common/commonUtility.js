@@ -32,6 +32,10 @@ CommonUtility.prototype.getUserId = function (req) {
   return decodeToken(extractToken(req));
 };
 
+CommonUtility.prototype.getOrgId = function (req) {
+  return decodeToken(extractToken(req));
+};
+
 CommonUtility.prototype.sendErrorResponse = function (res, msg) {
   res.status(400);
   return res.send({ msg: msg });

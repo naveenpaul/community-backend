@@ -17,6 +17,7 @@ const organisationSchema = new mongoose.Schema(
     staff: [
       {
         _id: mongoose.Schema.Types.ObjectId,
+        userId: mongoose.Schema.Types.ObjectId,
         firstName: String,
         lastName: String,
         emailId: String,
