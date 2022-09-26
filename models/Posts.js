@@ -3,8 +3,8 @@ const postsSchema = new mongoose.Schema(
   {
     createdAt: Date,
     updatedAt: Date,
-    orgId: mongoose.Schema.Types.ObjectId,
-    orgName: String,
+    commId: mongoose.Schema.Types.ObjectId,
+    commName: String,
     name: String,
     type: {
       type: String,

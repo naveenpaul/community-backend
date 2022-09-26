@@ -10,7 +10,7 @@ const memberSchema = new mongoose.Schema(
     mobileNumber: String,
     createdAt: Date,
     updatedAt: Date,
-    orgId: mongoose.Schema.Types.ObjectId,
+    commId: mongoose.Schema.Types.ObjectId,
     isApproved: Boolean,
     approvedBy: {
       emailId: String,

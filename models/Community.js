@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const organisationSchema = new mongoose.Schema(
+const communitySchema = new mongoose.Schema(
   {
     name: String,
     address: {
@@ -32,6 +32,6 @@ const organisationSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const Organisations = mongoose.model("organisations", organisationSchema);
+const Communities = mongoose.model("communities", communitySchema);
 
-module.exports = Organisations;
+module.exports = Communities;

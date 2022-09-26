@@ -5,7 +5,7 @@ const filesSchema = new mongoose.Schema(
       type: String,
       enum: ["EVENT", "POST", "USERPROFILE"],
     },
-    orgId: mongoose.Schema.Types.ObjectId,
+    commId: mongoose.Schema.Types.ObjectId,
     ownerId: mongoose.Schema.Types.ObjectId,
     type: String,
     fileName: String,
