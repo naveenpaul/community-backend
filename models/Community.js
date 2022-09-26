@@ -32,6 +32,6 @@ const communitySchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const Communities = mongoose.model("communities", communitySchema);
+const Community = mongoose.model("community", communitySchema);
 
-module.exports = Communities;
+module.exports = Community;
