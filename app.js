@@ -31,6 +31,8 @@ const login = require("./routes/login");
 const activityLogs = require("./routes/activityLogs");
 const files = require("./routes/files");
 const superadmin = require("./routes/superadmin");
+const events=require('./routes/Events')
+const posts=require('./routes/posts')
 
 /**
  * API keys and Passport configuration.
@@ -90,6 +92,8 @@ app.use("/", login);
 app.use("/", activityLogs);
 app.use("/", files);
 app.use("/", superadmin);
+app.use('/',events);
+app.use('/',posts);
 app.use(express.static(path.join(__dirname, "downloads")));
 
 /**

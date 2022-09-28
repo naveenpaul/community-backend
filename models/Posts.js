@@ -10,23 +10,8 @@ const postsSchema = new mongoose.Schema(
       type: String,
       enum: ["TEXT", "IMG", "VIDEO"],
     },
-    likes: [
-      {
-        fullName: String,
-        profilePicUrl: String,
-        memberId: mongoose.Schema.Types.ObjectId,
-        date: Date,
-      },
-    ],
-    comments: [
-      {
-        fullName: String,
-        profilePicUrl: String,
-        memberId: mongoose.Schema.Types.ObjectId,
-        date: Date,
-        isStaff: Boolean,
-      },
-    ],
+    likesCount: Number,
+    commentsCount: Number,
   },
   { timestamps: true }
 );
