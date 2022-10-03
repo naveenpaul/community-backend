@@ -1,13 +1,16 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 const eventSchema = new mongoose.Schema(
     {
         createdAt: Date,
         updatedAt: Date,
-        commId: mongoose.Schema.Types.ObjectId,
-        commName: String,
+        cId: mongoose.Schema.Types.ObjectId,
+        cName: String,
         name: String,
         description: String,
-        location: String,
+        location: {
+            long: String,
+            lat: String,
+        },
         startDate: Date,
         endDate: Date,
         address: {
@@ -19,12 +22,12 @@ const eventSchema = new mongoose.Schema(
         },
         type: {
             type: String,
-            enum: ['ONLINE', 'OFFLINE'],
+            enum: ["ONLINE", "OFFLINE"],
         },
         likesCount: Number,
         commentsCount: Number,
     },
     { timestamps: true }
 );
-const Events = mongoose.model('events', eventSchema);
+const Events = mongoose.model("events", eventSchema);
 module.exports = Events;

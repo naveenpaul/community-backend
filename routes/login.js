@@ -18,6 +18,7 @@ router.post("/user/login", handleUserLogin);
 function handleUserRegistration(req, res) {
   loginController.registerNewUser(req, res, (saveErr, savedUser) => {
     if (saveErr) {
+      console.log(saveErr);
       return common.sendErrorResponse(res, "Error in saving user details");
     } else {
       res.status(200);

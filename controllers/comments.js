@@ -13,7 +13,7 @@ Comment.prototype.addComment = (req, res, callback) => {
         // updatedAt: req.body.updatedAt,
         fullName: req.body.fullName,
         profilePicUrl: req.body.profilePicUrl,
-        memberId: common.castToObjectId(req.body.memberId),
+        userId: common.getUserId(req),
         date: req.body.date,
         isStaff: req.body.isStaff,
     });
@@ -48,7 +48,7 @@ Comment.prototype.getAllComments = (req, res) => {
 
 Comment.prototype.removeComment = (req, res) => {
     const id = common.castToObjectId(req.body.id);
-    comment.deleteOne({ _id: id }, (deleteErr, deleteEvent) => {
+    comment.deleteOne({ userId: common.getUserId(req) }, (deleteErr, deleteEvent) => {
         if (deleteErr || !deleteEvent) {
             return common.sendErrorResponse(res, 'Failed to delete the Event');
         }

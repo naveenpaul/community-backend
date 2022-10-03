@@ -1,8 +1,8 @@
-const event = require('../models/Events');
-const like = require('../controllers/like');
-const comment = require('../controllers/comment');
-const community = require('../models/Community');
-const commonUtility = require('../common/commonUtility');
+const event = require("../models/Events");
+const like = require("../controllers/likes");
+const comment = require("./comments");
+const community = require("../models/Community");
+const commonUtility = require("../common/commonUtility");
 const common = new commonUtility();
 
 const likeController = new like();
@@ -11,14 +11,17 @@ const commentController = new comment();
 function Event() {}
 
 Event.prototype.addEvent = (req, res, callback) => {
-    const newEvent = new Event({
+    const newEvent = new event({
         createdAt: req.body.createdAt,
         updatedAt: req.body.updatedAt,
-        commId: req.body.commId,
-        commName: req.body.commName,
+        cId: req.body.cId,
+        cName: req.body.cName,
         name: req.body.name,
         description: req.body.description,
-        location: req.body.location,
+        location: {
+            long: req.body.location.long,
+            lat: req.body.location.lat,
+        },
         startDate: req.body.startDate,
         endDate: req.body.endDate,
         address: {
@@ -36,36 +39,36 @@ Event.prototype.addEvent = (req, res, callback) => {
 };
 
 Event.prototype.getAllEvent = (req, res) => {
-    const commId = req.body.commId == null ? '' : req.body.commId;
+    const cId = req.body.cId == null ? "" : req.body.cId;
 
     event
         .find({
-            commId: common.castToObjectId(commId),
+            cId: common.castToObjectId(cId),
         })
         .lean()
         .exec((err, existingEvent) => {
             if (err || !existingEvent) {
-                return common.sendErrorResponse(res, 'Error in getting Event');
+                return common.sendErrorResponse(res, "Error in getting Event");
             }
 
             existingEvent = existingEvent || [];
             existingEvent.forEach((event) => {
-                event.link = '/event/' + event._id;
+                event.link = "/event/" + event._id;
             });
 
             return res.send({
                 events: existingEvent,
-                msg: 'Successfully got all events',
+                msg: "Successfully got all events",
                 length: existingEvent.length,
             });
         });
 };
 
 Event.prototype.updateEvent = (req, res, emailId) => {
-    const commId = common.castToObjectId(req.body.commId);
+    const cId = common.castToObjectId(req.body.cId);
     const id = common.castToObjectId(req.body.EventId);
 
-    community.findOne({ _id: commId, 'staff.emailId': emailId }, (communityErr, existingcomm) => {
+    community.findOne({ _id: cId, "staff.emailId": emailId }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {
             return common.sendErrorResponse(res, "You don't have access to specified community");
         }
@@ -94,114 +97,120 @@ Event.prototype.updateEvent = (req, res, emailId) => {
 };
 
 Event.prototype.removeEvent = (req, res, emailId) => {
-    const commId = common.castToObjectId(req.body.commId);
+    const cId = common.castToObjectId(req.body.cId);
     const id = common.castToObjectId(req.body.EventId);
 
-    community.findOne({ _id: commId, 'staff.emailId': emailId }, (communityErr, existingcomm) => {
+    community.findOne({ _id: cId, "staff.emailId": emailId }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {
             return common.sendErrorResponse(res, "You don't have access to specified community");
         }
 
         event.deleteOne({ _id: id }, (deleteErr, deleteEvent) => {
             if (deleteErr || !deleteEvent) {
-                return common.sendErrorResponse(res, 'Failed to delete the Event');
+                return common.sendErrorResponse(res, "Failed to delete the Event");
             }
-            return res.send({ msg: 'Succcessfully removed the event' });
+            return res.send({ msg: "Succcessfully removed the event" });
         });
     });
 };
 Event.prototype.getAllLike = (req, res, emailId) => {
-    const commId = common.castToObjectId(req.body.commId);
+    const cId = common.castToObjectId(req.body.cId);
     const id = common.castToObjectId(req.body.EventId);
     req.body.contentId = id;
 
-    community.findOne({ _id: commId, 'staff.emailId': emailId }, (communityErr, existingcomm) => {
+    community.findOne({ _id: cId, "staff.emailId": emailId }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {
             return common.sendErrorResponse(res, "You don't have access to specified community");
         }
 
-      likeController.getAllLike(req,res);
-        
+        likeController.getAllLike(req, res);
     });
 };
 
-Event.prototype.getAllComment=(req,res,emailId)=>{
-    const commId = common.castToObjectId(req.body.commId);
+Event.prototype.getAllComment = (req, res, emailId) => {
+    const cId = common.castToObjectId(req.body.cId);
     const id = common.castToObjectId(req.body.EventId);
     req.body.contentId = id;
 
-    community.findOne({ _id: commId, 'staff.emailId': emailId }, (communityErr, existingcomm) => {
+    community.findOne({ _id: cId, "staff.emailId": emailId }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {
             return common.sendErrorResponse(res, "You don't have access to specified community");
         }
 
-      commentController.getAllComment(req,res);
-        
+        commentController.getAllComment(req, res);
     });
-}
-
+};
 
 Event.prototype.addLike = (req, res, emailId) => {
-    const commId = common.castToObjectId(req.body.commId);
+    const cId = common.castToObjectId(req.body.cId);
     const id = common.castToObjectId(req.body.EventId);
-    req.body.contentId = id;
+    req.body.contentId =req.body.EventId;
 
-    community.findOne({ _id: commId, 'staff.emailId': emailId }, (communityErr, existingcomm) => {
+    community.findOne({ _id: cId, "staff.emailId": emailId }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {
             return common.sendErrorResponse(res, "You don't have access to specified community");
         }
 
         likeController.addLike(req, res, (Err, saved) => {
             if (Err || !saved) {
-                return common.sendErrorResponse(res, 'Error in adding the Event');
+                return common.sendErrorResponse(res, "Error in adding the Event");
             }
-        });
-        event.updateOne(
-            { _id: id },
-            {
-                $set: {
-                    likesCount: { $inc: 1 },
+            event.updateOne(
+                { _id: id },
+                {
+                    $set: {
+                        "likesCount": { $add:["$likesCount",1]},
+                    },
                 },
-            }
-        );
+                (Err,updated)=>{
+                    if(Err || !updated){
+                        return common.sendErrorResponse(res,"error in incrementing the count")
+                    }
+                    return res.send({ msg: "successfully added like" });
+                }
+            );
+
+            
+        });
     });
 };
 
 Event.prototype.addComment = (req, res, emailId) => {
-    const commId = common.castToObjectId(req.body.commId);
+    const cId = common.castToObjectId(req.body.cId);
     const id = common.castToObjectId(req.body.EventId);
     req.body.contentId = id;
 
-    community.findOne({ _id: commId, 'staff.emailId': emailId }, (communityErr, existingcomm) => {
+    community.findOne({ _id: cId, "staff.emailId": emailId }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {
             return common.sendErrorResponse(res, "You don't have access to specified community");
         }
-        commentController.addComment(req,res,(err,addedComment)=>{
-            if(err|| !addedComment){
-                common.sendErrorResponse(res,"failed to add the comment");
+        commentController.addComment(req, res, (err, addedComment) => {
+            if (err || !addedComment) {
+                common.sendErrorResponse(res, "failed to add the comment");
             }
+            event.updateOne(
+                { _id: id },
+                {
+                    $set: {
+                        commentsCount: { $inc: 1 },
+                    },
+                }
+            );
+            return res.send({ msg: "successfully added comment" });
         });
-        event.updateOne(
-            { _id: id },
-            {
-                $set: {
-                    commentsCount: { $inc: 1 },
-                },
-            }
-        );
     });
 };
 
 Event.prototype.removeLike = (req, res, emailId) => {
-    const commId = common.castToObjectId(req.body.commId);
+    const cId = common.castToObjectId(req.body.cId);
     const id = common.castToObjectId(req.body.EventId);
-    req.body.contentId = id;
+    req.body.contentId = req.body.EventId;
 
-    community.findOne({ _id: commId, 'staff.emailId': emailId }, (communityErr, existingcomm) => {
+    community.findOne({ _id: cId, "staff.emailId": emailId }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {
             return common.sendErrorResponse(res, "You don't have access to specified community");
         }
-        likeController.removeLike(req,res);
+        likeController.removeLike(req, res);
         event.updateOne(
             { _id: id },
             {
@@ -210,33 +219,34 @@ Event.prototype.removeLike = (req, res, emailId) => {
                 },
             }
         );
+        return res.send({ msg: "successfully added like" });
     });
 };
 
 // Event.prototype.updateComment=(req,res,emailId)=>{
-//     const commId = common.castToObjectId(req.body.commId);
+//     const cId = common.castToObjectId(req.body.cId);
 //     const id = common.castToObjectId(req.body.EventId);
 
-//     community.findOne({ _id: commId, 'staff.emailId': emailId }, (communityErr, existingcomm) => {
+//     community.findOne({ _id: cId, 'staff.emailId': emailId }, (communityErr, existingcomm) => {
 //         if (communityErr || !existingcomm) {
 //             return common.sendErrorResponse(res, "You don't have access to specified community");
 //         }
 //         commentController.removeComment(req,res);
-    
+
 //     });
 
 // }
 
 Event.prototype.removeComment = (req, res, emailId) => {
-    const commId = common.castToObjectId(req.body.commId);
+    const cId = common.castToObjectId(req.body.cId);
     const id = common.castToObjectId(req.body.EventId);
     req.body.contentId = id;
 
-    community.findOne({ _id: commId, 'staff.emailId': emailId }, (communityErr, existingcomm) => {
+    community.findOne({ _id: cId, "staff.emailId": emailId }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {
             return common.sendErrorResponse(res, "You don't have access to specified community");
         }
-        commentController.removeComment(req,res);
+        commentController.removeComment(req, res);
         event.updateOne(
             { _id: id },
             {
@@ -245,6 +255,7 @@ Event.prototype.removeComment = (req, res, emailId) => {
                 },
             }
         );
+        return res.send({ msg: "remmoved Comment" });
     });
 };
 

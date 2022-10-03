@@ -1,6 +1,6 @@
-const like = require('../models/Likes');
-const community = require('../models/Community');
-const commonUtility = require('../common/commonUtility');
+const like = require("../models/Likes");
+const community = require("../models/Community");
+const commonUtility = require("../common/commonUtility");
 const common = new commonUtility();
 
 function Like() {}
@@ -13,14 +13,14 @@ Like.prototype.addLike = (req, res, callback) => {
         // updatedAt: req.body.updatedAt,
         fullName: req.body.fullName,
         profilePicUrl: req.body.profilePicUrl,
-        memberId: common.castToObjectId(req.body.memberId),
+        userId: common.getUserId(req),
         date: req.body.date,
     });
     newLike.save(callback);
 };
 
 Like.prototype.getAllLikes = (req, res) => {
-    const contentId = req.body.contentId == null ? '' : req.body.contentId;
+    const contentId = req.body.contentId == null ? "" : req.body.contentId;
     like.find({
         contentId: common.castToObjectId(contentId),
         type: req.body.type,
@@ -28,7 +28,7 @@ Like.prototype.getAllLikes = (req, res) => {
         .lean()
         .exec((err, existingLike) => {
             if (err || !existingLike) {
-                return common.sendErrorResponse(res, 'Error in getting Content');
+                return common.sendErrorResponse(res, "Error in getting Content");
             }
             existingLike = existingLike || [];
 
@@ -38,21 +38,20 @@ Like.prototype.getAllLikes = (req, res) => {
 
             return res.send({
                 users: existingLike,
-                msg: 'successfully got all likes',
+                msg: "successfully got all likes",
                 length: existingLike.length,
             });
         });
 };
 Like.prototype.removeLike = (req, res) => {
     const id = common.castToObjectId(req.body.id);
-    like.deleteOne({ _id: id }, (deleteErr, deleteEvent) => {
+    
+    like.deleteOne({ contentId:id, userId: common.getUserId(req) }, (deleteErr, deleteEvent) => {
         if (deleteErr || !deleteEvent) {
-            return common.sendErrorResponse(res, 'Failed to delete the Event');
+            return common.sendErrorResponse(res, "Failed to delete the Event");
         }
-        return res.send({ msg: 'Succcessfully removed the event' });
+        // return res.send({ msg: "Succcessfully removed the event" });
     });
 };
-
-
 
 module.exports = Like;

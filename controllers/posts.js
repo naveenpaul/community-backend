@@ -9,8 +9,8 @@ Post.prototype.addPost = (req, res, callback) => {
     const newPost = new posts({
         createdAt: req.body.createdAt,
         updatedAt: req.body.updatedAt,
-        commId: req.body.commId,
-        commName: req.body.commName,
+        cId: req.body.cId,
+        cName: req.body.cName,
         name: req.body.name,
         type: req.body.type,
         likesCount: 0,
@@ -20,11 +20,11 @@ Post.prototype.addPost = (req, res, callback) => {
 };
 
 Post.prototype.getAllPost = (req, res) => {
-    const commId = req.body.commId == null ? '' : req.body.commId;
+    const cId = req.body.cId == null ? '' : req.body.cId;
 
     posts
         .find({
-            commId: common.castToObjectId(commId),
+            cId: common.castToObjectId(cId),
         })
         .lean()
         .exec((err, existingPost) => {
@@ -46,10 +46,10 @@ Post.prototype.getAllPost = (req, res) => {
 };
 
 Post.prototype.updatePost = (req, res, emailId) => {
-    const commId = common.castToObjectId(req.body.commId);
+    const cId = common.castToObjectId(req.body.cId);
     const id = common.castToObjectId(req.body.postId);
 
-    community.findOne({ _id: commId, 'staff.emailId': emailId }, (communityErr, existingcomm) => {
+    community.findOne({ _id: cId, 'staff.emailId': emailId }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {
             return common.sendErrorResponse(res, "You don't have access to specified community");
         }
@@ -58,8 +58,8 @@ Post.prototype.updatePost = (req, res, emailId) => {
             {
                 $set: {
                   updatedAt:req.body.updatedAt,
-                  commId: req.body.commId,
-                  commName: req.body.commName,
+                  cId: req.body.cId,
+                  cName: req.body.cName,
                   name: req.body.name,
                   type: req.body.type,
                 },
@@ -69,10 +69,10 @@ Post.prototype.updatePost = (req, res, emailId) => {
 };
 
 Post.prototype.removePost = (req, res, emailId) => {
-    const commId = common.castToObjectId(req.body.commId);
+    const cId = common.castToObjectId(req.body.cId);
     const id = common.castToObjectId(req.body.postId);
 
-    community.findOne({ _id: commId, 'staff.emailId': emailId }, (communityErr, existingcomm) => {
+    community.findOne({ _id: cId, 'staff.emailId': emailId }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {
             return common.sendErrorResponse(res, "You don't have access to specified community");
         }
@@ -87,10 +87,10 @@ Post.prototype.removePost = (req, res, emailId) => {
 };
 
 Post.prototype.addLike = (req, res, emailId) => {
-    const commId = common.castToObjectId(req.body.commId);
+    const cId = common.castToObjectId(req.body.cId);
     const id = common.castToObjectId(req.body.postId);
 
-    community.findOne({ _id: commId, 'staff.emailId': emailId }, (communityErr, existingcomm) => {
+    community.findOne({ _id: cId, 'staff.emailId': emailId }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {
             return common.sendErrorResponse(res, "You don't have access to specified community");
         }
@@ -106,10 +106,10 @@ Post.prototype.addLike = (req, res, emailId) => {
 };
 
 Post.prototype.addComment = (req, res, emailId) => {
-    const commId = common.castToObjectId(req.body.commId);
+    const cId = common.castToObjectId(req.body.cId);
     const id = common.castToObjectId(req.body.postId);
 
-    community.findOne({ _id: commId, 'staff.emailId': emailId }, (communityErr, existingcomm) => {
+    community.findOne({ _id: cId, 'staff.emailId': emailId }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {
             return common.sendErrorResponse(res, "You don't have access to specified community");
         }
@@ -126,10 +126,10 @@ Post.prototype.addComment = (req, res, emailId) => {
 };
 
 Post.prototype.removeLike = (req, res, emailId) => {
-    const commId = common.castToObjectId(req.body.commId);
+    const cId = common.castToObjectId(req.body.cId);
     const id = common.castToObjectId(req.body.postId);
 
-    community.findOne({ _id: commId, 'staff.emailId': emailId }, (communityErr, existingcomm) => {
+    community.findOne({ _id: cId, 'staff.emailId': emailId }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {
             return common.sendErrorResponse(res, "You don't have access to specified community");
         }
@@ -144,10 +144,10 @@ Post.prototype.removeLike = (req, res, emailId) => {
     });
 };
 Post.prototype.removeComment = (req, res, emailId) => {
-    const commId = common.castToObjectId(req.body.commId);
+    const cId = common.castToObjectId(req.body.cId);
     const id = common.castToObjectId(req.body.postId);
 
-    community.findOne({ _id: commId, 'staff.emailId': emailId }, (communityErr, existingcomm) => {
+    community.findOne({ _id: cId, 'staff.emailId': emailId }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {
             return common.sendErrorResponse(res, "You don't have access to specified community");
         }
