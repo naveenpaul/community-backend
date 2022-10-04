@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
 const LikesSchema = new mongoose.Schema(
     {
-        contentId: mongoose.Schema.Types.ObjectId,
-        type: ["EVENT", "POST", "COURSE"],
+        sourceId: mongoose.Schema.Types.ObjectId,
+        source: ["EVENT", "POST", "COURSE"],
         // createdAt: Date,
         // updatedAt: Date,
         fullName: String,

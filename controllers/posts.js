@@ -1,5 +1,5 @@
-const posts = require('../models/Posts');
-const community = require('../models/Community');
+const posts = require('../models/posts');
+const community = require('../models/community');
 const commonUtility = require('../common/commonUtility');
 const common = new commonUtility();
 

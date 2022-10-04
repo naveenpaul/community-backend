@@ -1,7 +1,7 @@
-const event = require("../models/Events");
+const event = require("../models/events");
 const like = require("../controllers/likes");
 const comment = require("./comments");
-const community = require("../models/Community");
+const community = require("../models/community");
 const commonUtility = require("../common/commonUtility");
 const common = new commonUtility();
 
@@ -116,7 +116,7 @@ Event.prototype.removeEvent = (req, res, emailId) => {
 Event.prototype.getAllLike = (req, res, emailId) => {
     const cId = common.castToObjectId(req.body.cId);
     const id = common.castToObjectId(req.body.EventId);
-    req.body.contentId = id;
+    req.body.sourceId = id;
 
     community.findOne({ _id: cId, "staff.emailId": emailId }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {
@@ -130,7 +130,7 @@ Event.prototype.getAllLike = (req, res, emailId) => {
 Event.prototype.getAllComment = (req, res, emailId) => {
     const cId = common.castToObjectId(req.body.cId);
     const id = common.castToObjectId(req.body.EventId);
-    req.body.contentId = id;
+    req.body.sourceId = id;
 
     community.findOne({ _id: cId, "staff.emailId": emailId }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {
@@ -144,7 +144,7 @@ Event.prototype.getAllComment = (req, res, emailId) => {
 Event.prototype.addLike = (req, res, emailId) => {
     const cId = common.castToObjectId(req.body.cId);
     const id = common.castToObjectId(req.body.EventId);
-    req.body.contentId =req.body.EventId;
+    req.body.sourceId =req.body.EventId;
 
     community.findOne({ _id: cId, "staff.emailId": emailId }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {
@@ -178,7 +178,7 @@ Event.prototype.addLike = (req, res, emailId) => {
 Event.prototype.addComment = (req, res, emailId) => {
     const cId = common.castToObjectId(req.body.cId);
     const id = common.castToObjectId(req.body.EventId);
-    req.body.contentId = id;
+    req.body.sourceId = id;
 
     community.findOne({ _id: cId, "staff.emailId": emailId }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {
@@ -204,7 +204,7 @@ Event.prototype.addComment = (req, res, emailId) => {
 Event.prototype.removeLike = (req, res, emailId) => {
     const cId = common.castToObjectId(req.body.cId);
     const id = common.castToObjectId(req.body.EventId);
-    req.body.contentId = req.body.EventId;
+    req.body.sourceId = req.body.EventId;
 
     community.findOne({ _id: cId, "staff.emailId": emailId }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {
@@ -240,7 +240,7 @@ Event.prototype.removeLike = (req, res, emailId) => {
 Event.prototype.removeComment = (req, res, emailId) => {
     const cId = common.castToObjectId(req.body.cId);
     const id = common.castToObjectId(req.body.EventId);
-    req.body.contentId = id;
+    req.body.sourceId = id;
 
     community.findOne({ _id: cId, "staff.emailId": emailId }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {

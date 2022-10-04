@@ -1,4 +1,4 @@
-const community = require("../models/Community");
+const community = require("../models/community");
 const commonUtility = require("../common/commonUtility");
 const user = require("../controllers/user");
 const common = new commonUtility();

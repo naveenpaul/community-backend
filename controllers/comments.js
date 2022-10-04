@@ -1,14 +1,14 @@
-const comment = require('../models/Comments');
-const community = require('../models/Community');
-const commonUtility = require('../common/commonUtility');
+const comment = require("../models/comments");
+const community = require("../models/community");
+const commonUtility = require("../common/commonUtility");
 const common = new commonUtility();
 
 function Comment() {}
 
 Comment.prototype.addComment = (req, res, callback) => {
     const newComment = new comment({
-        contentId: common.castToObjectId(req.body.contentId),
-        type: req.body.type,
+        sourceId: common.castToObjectId(req.body.sourceId),
+        source: req.body.source,
         // createdAt: req.body.createdAt,
         // updatedAt: req.body.updatedAt,
         fullName: req.body.fullName,
@@ -21,16 +21,16 @@ Comment.prototype.addComment = (req, res, callback) => {
 };
 
 Comment.prototype.getAllComments = (req, res) => {
-    const contentId = req.body.contentId == null ? '' : req.body.contentId;
+    const sourceId = req.body.sourceId == null ? "" : req.body.sourceId;
     comment
         .find({
-            contentId: common.castToObjectId(contentId),
-            type: req.body.type,
+            sourceId: common.castToObjectId(sourceId),
+            source: req.body.type,
         })
         .lean()
         .exec((err, existingComments) => {
             if (err || !existingComments) {
-                return common.sendErrorResponse(res, 'Error in getting Content');
+                return common.sendErrorResponse(res, "Error in getting Content");
             }
             existingComments = existingComments || [];
 
@@ -40,7 +40,7 @@ Comment.prototype.getAllComments = (req, res) => {
 
             return res.send({
                 users: existingComments,
-                msg: 'successfully got all Comments',
+                msg: "successfully got all Comments",
                 length: existingComments.length,
             });
         });
@@ -50,9 +50,9 @@ Comment.prototype.removeComment = (req, res) => {
     const id = common.castToObjectId(req.body.id);
     comment.deleteOne({ userId: common.getUserId(req) }, (deleteErr, deleteEvent) => {
         if (deleteErr || !deleteEvent) {
-            return common.sendErrorResponse(res, 'Failed to delete the Event');
+            return common.sendErrorResponse(res, "Failed to delete the Event");
         }
-        return res.send({ msg: 'Succcessfully removed the event' });
+        return res.send({ msg: "Succcessfully removed the event" });
     });
 };
 module.exports = Comment;
