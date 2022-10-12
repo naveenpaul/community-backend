@@ -66,7 +66,7 @@ Event.prototype.getAllEvent = (req, res) => {
 
 Event.prototype.updateEvent = (req, res, emailId) => {
     const cId = common.castToObjectId(req.body.cId);
-    const id = common.castToObjectId(req.body.EventId);
+    const id = common.castToObjectId(req.body.eventId);
 
     community.findOne({ _id: cId, "staff.emailId": emailId }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {
@@ -79,7 +79,10 @@ Event.prototype.updateEvent = (req, res, emailId) => {
                     updatedAt: req.body.updatedAt,
                     name: req.body.name,
                     description: req.body.description,
-                    location: req.body.location,
+                    location: {
+                        long: req.body.location.long,
+                        lat: req.body.location.lat,
+                    },
                     startDate: req.body.startDate,
                     endDate: req.body.endDate,
                     address: {
@@ -91,6 +94,13 @@ Event.prototype.updateEvent = (req, res, emailId) => {
                     },
                     type: req.body.type,
                 },
+            },
+            (Err, updated) => {
+                if (Err || !updated) {
+                    return common.sendErrorResponse(res, "Error in upating the event");
+                }
+
+                return res.send({ msg: "Updated the Event" });
             }
         );
     });
@@ -98,7 +108,7 @@ Event.prototype.updateEvent = (req, res, emailId) => {
 
 Event.prototype.removeEvent = (req, res, emailId) => {
     const cId = common.castToObjectId(req.body.cId);
-    const id = common.castToObjectId(req.body.EventId);
+    const id = common.castToObjectId(req.body.eventId);
 
     community.findOne({ _id: cId, "staff.emailId": emailId }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {
@@ -115,117 +125,125 @@ Event.prototype.removeEvent = (req, res, emailId) => {
 };
 Event.prototype.getAllLike = (req, res, emailId) => {
     const cId = common.castToObjectId(req.body.cId);
-    const id = common.castToObjectId(req.body.EventId);
-    req.body.sourceId = id;
+    const id = common.castToObjectId(req.body.eventId);
+    req.body.sourceId = req.body.eventId;
 
     community.findOne({ _id: cId, "staff.emailId": emailId }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {
             return common.sendErrorResponse(res, "You don't have access to specified community");
         }
 
-        likeController.getAllLike(req, res);
+        likeController.getAllLikes(req, res);
     });
 };
 
 Event.prototype.getAllComment = (req, res, emailId) => {
     const cId = common.castToObjectId(req.body.cId);
-    const id = common.castToObjectId(req.body.EventId);
-    req.body.sourceId = id;
+    const id = common.castToObjectId(req.body.eventId);
+    req.body.sourceId = req.body.eventId;
 
     community.findOne({ _id: cId, "staff.emailId": emailId }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {
             return common.sendErrorResponse(res, "You don't have access to specified community");
         }
 
-        commentController.getAllComment(req, res);
+        commentController.getAllComments(req, res);
     });
 };
 
 Event.prototype.addLike = (req, res, emailId) => {
     const cId = common.castToObjectId(req.body.cId);
-    const id = common.castToObjectId(req.body.EventId);
-    req.body.sourceId =req.body.EventId;
+    const id = common.castToObjectId(req.body.eventId);
+    req.body.sourceId = req.body.eventId;
 
     community.findOne({ _id: cId, "staff.emailId": emailId }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {
             return common.sendErrorResponse(res, "You don't have access to specified community");
         }
 
-        likeController.addLike(req, res, (Err, saved) => {
-            if (Err || !saved) {
-                return common.sendErrorResponse(res, "Error in adding the Event");
-            }
-            event.updateOne(
-                { _id: id },
-                {
-                    $set: {
-                        "likesCount": { $add:["$likesCount",1]},
-                    },
-                },
-                (Err,updated)=>{
-                    if(Err || !updated){
-                        return common.sendErrorResponse(res,"error in incrementing the count")
-                    }
-                    return res.send({ msg: "successfully added like" });
+        event.updateOne(
+            { _id: id },
+            {
+                $inc: { likesCount: 1 },
+            },
+            (Err, updated) => {
+                if (Err || !updated) {
+                    return common.sendErrorResponse(res, "error in incrementing the count");
                 }
-            );
-
-            
-        });
+                likeController.addLike(req, res, (Err, saved) => {
+                    if (Err || !saved) {
+                        return common.sendErrorResponse(res, "Error in adding the like");
+                    }
+                    return res.send({ msg: "Successfully added the like" });
+                });
+            }
+        );
     });
 };
 
 Event.prototype.addComment = (req, res, emailId) => {
     const cId = common.castToObjectId(req.body.cId);
-    const id = common.castToObjectId(req.body.EventId);
-    req.body.sourceId = id;
+    const id = common.castToObjectId(req.body.eventId);
+    req.body.sourceId = req.body.eventId;
 
     community.findOne({ _id: cId, "staff.emailId": emailId }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {
             return common.sendErrorResponse(res, "You don't have access to specified community");
         }
-        commentController.addComment(req, res, (err, addedComment) => {
-            if (err || !addedComment) {
-                common.sendErrorResponse(res, "failed to add the comment");
-            }
-            event.updateOne(
-                { _id: id },
-                {
-                    $set: {
-                        commentsCount: { $inc: 1 },
-                    },
+
+        event.updateOne(
+            { _id: id },
+            {
+                $inc: { commentsCount: 1 },
+            },
+            (Err, updated) => {
+                if (Err || !updated) {
+                    return common.sendErrorResponse(res, "error in incrementing the count");
                 }
-            );
-            return res.send({ msg: "successfully added comment" });
-        });
+                commentController.addComment(req, res, (Err, saved) => {
+                    if (Err || !saved) {
+                        return common.sendErrorResponse(res, "Error in adding the comment");
+                    }
+                    return res.send({ msg: "Successfully added the comment" });
+                });
+            }
+        );
     });
 };
 
 Event.prototype.removeLike = (req, res, emailId) => {
     const cId = common.castToObjectId(req.body.cId);
-    const id = common.castToObjectId(req.body.EventId);
-    req.body.sourceId = req.body.EventId;
+    const id = common.castToObjectId(req.body.eventId);
+    req.body.sourceId = req.body.eventId;
 
     community.findOne({ _id: cId, "staff.emailId": emailId }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {
             return common.sendErrorResponse(res, "You don't have access to specified community");
         }
-        likeController.removeLike(req, res);
+
         event.updateOne(
             { _id: id },
             {
-                $set: {
-                    likesCount: { $inc: -1 },
-                },
+                $inc: { likesCount: -1 },
+            },
+            (Err, updated) => {
+                if (Err || !updated) {
+                    return common.sendErrorResponse(res, "Error in updating");
+                }
+                likeController.removeLike(req, res, (Err, removed) => {
+                    if (Err || !removed) {
+                        return common.sendErrorResponse(res, "Error in removing the Like");
+                    }
+                    // return res.send({ msg: "successfully removed like" });
+                });
             }
         );
-        return res.send({ msg: "successfully added like" });
     });
 };
 
 // Event.prototype.updateComment=(req,res,emailId)=>{
 //     const cId = common.castToObjectId(req.body.cId);
-//     const id = common.castToObjectId(req.body.EventId);
+//     const id = common.castToObjectId(req.body.eventId);
 
 //     community.findOne({ _id: cId, 'staff.emailId': emailId }, (communityErr, existingcomm) => {
 //         if (communityErr || !existingcomm) {
@@ -239,23 +257,30 @@ Event.prototype.removeLike = (req, res, emailId) => {
 
 Event.prototype.removeComment = (req, res, emailId) => {
     const cId = common.castToObjectId(req.body.cId);
-    const id = common.castToObjectId(req.body.EventId);
-    req.body.sourceId = id;
+    const id = common.castToObjectId(req.body.eventId);
+    req.body.sourceId = req.body.eventId;
 
     community.findOne({ _id: cId, "staff.emailId": emailId }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {
             return common.sendErrorResponse(res, "You don't have access to specified community");
         }
-        commentController.removeComment(req, res);
         event.updateOne(
             { _id: id },
             {
-                $set: {
-                    commentsCount: { $inc: -1 },
-                },
+                $inc: { commentsCount: -1 },
+            },
+            (Err, updated) => {
+                if (Err || !updated) {
+                    return common.sendErrorResponse(res, "error in incrementing the count");
+                }
+                commentController.removeComment(req, res, (Err, saved) => {
+                    if (Err || !saved) {
+                        return common.sendErrorResponse(res, "Error in removing the comment");
+                    }
+                    return res.send({ msg: "Successfully removed the comment" });
+                });
             }
         );
-        return res.send({ msg: "remmoved Comment" });
     });
 };
 

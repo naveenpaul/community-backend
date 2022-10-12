@@ -16,6 +16,8 @@ Router.post("/events/remove", common.authorizeUser, handleRemoveEvent);
 Router.post("/events/remove/comment", common.authorizeUser, handleRemoveComment);
 Router.post("/events/remove/like", common.authorizeUser, handleRemoveLike);
 Router.post("/events/update", common.authorizeUser, handleUpdateEvents);
+Router.post("/events/get/all/comments", common.authorizeUser, handleGetAllComments);
+Router.post("/events/get/all/likes", common.authorizeUser, handleGetAllLikes);
 
 function handleAddEvents(req, res) {
     const userId = common.getUserId(req) || "";
@@ -114,5 +116,26 @@ function handleRemoveComment(req, res) {
         eventController.removeComment(req, res, existingUser.emailId);
     });
 }
+function handleGetAllComments(req, res) {
+    const userId = common.getUserId(req) || "";
 
+    userController.findUserByUserId(common.castToObjectId(userId), { emailId: 1 }, (err, existingUser) => {
+        if (err || !existingUser) {
+            return common.sendErrorResponse(res, "Error getting user details");
+        }
+
+        eventController.getAllComment(req, res, existingUser.emailId);
+    });
+}
+function handleGetAllLikes(req, res) {
+    const userId = common.getUserId(req) || "";
+
+    userController.findUserByUserId(common.castToObjectId(userId), { emailId: 1 }, (err, existingUser) => {
+        if (err || !existingUser) {
+            return common.sendErrorResponse(res, "Error getting user details");
+        }
+
+        eventController.getAllLike(req, res, existingUser.emailId);
+    });
+}
 module.exports = Router;

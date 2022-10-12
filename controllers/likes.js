@@ -8,7 +8,7 @@ function Like() {}
 Like.prototype.addLike = (req, res, callback) => {
     const newLike = new like({
         sourceId: common.castToObjectId(req.body.sourceId),
-        source: req.body.type,
+        source: req.body.source,
         // createdAt: req.body.createdAt,
         // updatedAt: req.body.updatedAt,
         fullName: req.body.fullName,
@@ -23,7 +23,7 @@ Like.prototype.getAllLikes = (req, res) => {
     const sourceId = req.body.sourceId == null ? "" : req.body.sourceId;
     like.find({
         sourceId: common.castToObjectId(sourceId),
-        type: req.body.type,
+        source: req.body.source,
     })
         .lean()
         .exec((err, existingLike) => {
@@ -37,20 +37,20 @@ Like.prototype.getAllLikes = (req, res) => {
             // });
 
             return res.send({
-                users: existingLike,
+                likes: existingLike,
                 msg: "successfully got all likes",
                 length: existingLike.length,
             });
         });
 };
 Like.prototype.removeLike = (req, res) => {
-    const id = common.castToObjectId(req.body.id);
+    const id = common.castToObjectId(req.body.sourceId);
     
     like.deleteOne({ sourceId:id, userId: common.getUserId(req) }, (deleteErr, deleteEvent) => {
         if (deleteErr || !deleteEvent) {
-            return common.sendErrorResponse(res, "Failed to delete the Event");
+            return common.sendErrorResponse(res, "Failed to delete the like");
         }
-        // return res.send({ msg: "Succcessfully removed the event" });
+         return res.send({ msg: "Succcessfully removed the like" });
     });
 };
 

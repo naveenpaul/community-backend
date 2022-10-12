@@ -6,6 +6,7 @@ const CommentSchema = new mongoose.Schema(
         fullName: String,
         profilePicUrl: String,
         userId: mongoose.Schema.Types.ObjectId,
+        description:String,
         date: Date,
         isStaff: Boolean,
     },

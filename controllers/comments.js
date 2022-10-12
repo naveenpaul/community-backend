@@ -14,6 +14,7 @@ Comment.prototype.addComment = (req, res, callback) => {
         fullName: req.body.fullName,
         profilePicUrl: req.body.profilePicUrl,
         userId: common.getUserId(req),
+        description:req.body.description,
         date: req.body.date,
         isStaff: req.body.isStaff,
     });
@@ -25,7 +26,7 @@ Comment.prototype.getAllComments = (req, res) => {
     comment
         .find({
             sourceId: common.castToObjectId(sourceId),
-            source: req.body.type,
+            source: req.body.source,
         })
         .lean()
         .exec((err, existingComments) => {
@@ -39,7 +40,7 @@ Comment.prototype.getAllComments = (req, res) => {
             // });
 
             return res.send({
-                users: existingComments,
+                comments: existingComments,
                 msg: "successfully got all Comments",
                 length: existingComments.length,
             });
@@ -48,11 +49,13 @@ Comment.prototype.getAllComments = (req, res) => {
 
 Comment.prototype.removeComment = (req, res) => {
     const id = common.castToObjectId(req.body.id);
-    comment.deleteOne({ userId: common.getUserId(req) }, (deleteErr, deleteEvent) => {
+    const sourceId=common.castToObjectId(req.body.sourceId)
+
+    comment.deleteOne({_id:id, sourceId:sourceId, userId: common.getUserId(req) }, (deleteErr, deleteEvent) => {
         if (deleteErr || !deleteEvent) {
-            return common.sendErrorResponse(res, "Failed to delete the Event");
+            return common.sendErrorResponse(res, "Failed to delete the comment");
         }
-        return res.send({ msg: "Succcessfully removed the event" });
+        return res.send({ msg: "Succcessfully removed the comment" });
     });
 };
 module.exports = Comment;
