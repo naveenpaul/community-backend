@@ -12,6 +12,7 @@ const activityLogController = new activityLog();
 
 Router.post("/community/add", common.authorizeUser, handleAddcommunity);
 Router.post("/community/get/all", common.authorizeUser, handleGetcommunity);
+// Router.post("/community/get/",common.authorizeUser,handleGetCommunityById);
 Router.post("/community/remove", common.authorizeUser, handleRemovecommunity);
 Router.post("/community/update", common.authorizeUser, handleUpdatecommunity);
 Router.post("/community/add/staff", common.authorizeUser, handleAddStaff);
@@ -44,11 +45,11 @@ function handleAddcommunity(req, res) {
 function handleGetcommunity(req, res) {
     const userId = common.getUserId(req) || "";
 
-    userController.findUserByUserId(common.castToObjectId(userId), { emailId: 1 }, (err, existingUser) => {
+    userController.findUserByUserId(common.castToObjectId(userId), { _id:1,emailId: 1 }, (err, existingUser) => {
         if (err || !existingUser) {
             return common.sendErrorResponse(res, "Error getting user details");
         }
-        communityController.getAllCommunity(req, res,existingUser.emailId);
+        communityController.getAllCommunity(req, res,existingUser._id);
     });
 }
 
@@ -60,7 +61,7 @@ function handleUpdatecommunity(req, res) {
             return common.sendErrorResponse(res, "Error getting user details");
         }
 
-        communityController.updateCommunity(req, res, existingUser.emailId);
+        communityController.updateCommunity(req, res, existingUser._id);
     });
 }
 function handleRemovecommunity(req, res) {
@@ -71,7 +72,7 @@ function handleRemovecommunity(req, res) {
             return common.sendErrorResponse(res, "Error getting user details");
         }
 
-        communityController.removeCommunity(req, res, existingUser.emailId);
+        communityController.removeCommunity(req, res, existingUser._id);
     });
 }
 
@@ -83,7 +84,7 @@ function handleAddStaff(req, res) {
             return common.sendErrorResponse(res, "Error getting user details");
         }
 
-        communityController.addStaff(req, res, existingUser.emailId);
+        communityController.addStaff(req, res, existingUser._id);
     });
 }
 
@@ -95,7 +96,7 @@ function handleRemoveStaff(req, res) {
             return common.sendErrorResponse(res, "Error getting user details");
         }
 
-        communityController.removeStaff(req, res, existingUser.emailId);
+        communityController.removeStaff(req, res, existingUser._id);
     });
 }
 function handleGetAllStaff(req, res) {
@@ -106,7 +107,7 @@ function handleGetAllStaff(req, res) {
             return common.sendErrorResponse(res, "Error getting user details");
         }
 
-        communityController.getAllStaff(req, res, existingUser.emailId);
+        communityController.getAllStaff(req, res, existingUser._id);
     });
 }
 

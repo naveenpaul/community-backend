@@ -72,7 +72,7 @@ function handleUserLogin(req, res) {
     if (err || !existingUser) {
       common.sendErrorResponse(res, "User is not present, Please sign up");
     } else {
-      if (req.body.loginWith == 'google') {
+      if (req.body.loginWith == 'google' || req.body.loginWith=="MOBILENUMBER") {
         sendLoginResponse(res, existingUser);
 
       } else {

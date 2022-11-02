@@ -4,6 +4,7 @@ const commonUtility = require("../common/commonUtility");
 const common = new commonUtility();
 const like = require("../controllers/likes");
 const comment = require("./comments");
+const { requestNewAccessToken } = require("passport-oauth2-refresh");
 
 const likeController = new like();
 const commentController = new comment();
@@ -12,12 +13,17 @@ function Post() {}
 
 
 Post.prototype.addPost = (req, res, callback) => {
+    let poll=req.body.poll.map( function(element){return {option:element, userId:[]}});
     const newPost = new posts({
         cId: req.body.cId,
         cName: req.body.cName,
         name: req.body.name,
         type: req.body.type,
-        userId: req.body.userId,
+        text:req.body.text || "",
+        poll:req.body.option,
+        thumbnail:req.body.thumbnail || "",
+        userId: common.getUserId(req),
+        poll:poll,
         likesCount: 0,
         commentsCount: 0,
     });
@@ -150,7 +156,7 @@ Post.prototype.addComment = (req, res, emailId) => {
                     if (Err || !saved) {
                         return common.sendErrorResponse(res, "Error in adding the comment");
                     }
-                    return res.send({ msg: "Successfully added the comment" });
+                    return res.send({ msg: "Successfully added the comment",comment:saved });
                 });
             }
         );
@@ -242,4 +248,36 @@ Post.prototype.getAllLikes = (req, res, emailId) => {
         likeController.getAllLikes(req,res);
     });
 };
+
+Post.prototype.addVote = (req, res, emailId) => {
+    const cId = common.castToObjectId(req.body.cId);
+    const id = common.castToObjectId(req.body.postId);
+    req.body.sourceId = req.body.postId;
+    const selectedOption=req.body.selectedOption;
+
+    community.findOne({ _id: cId, "staff.emailId": emailId }, (communityErr, existingcomm) => {
+        if (communityErr || !existingcomm) {
+            return common.sendErrorResponse(res, "You don't have access to specified community");
+        }
+        //TODO: add the logic for voting!!
+        posts.updateOne(
+            { _id: id, },
+            {
+                
+            },
+            (Err, updated) => {
+                if (Err || !updated) {
+                    return common.sendErrorResponse(res, "error in incrementing the count");
+                }
+                commentController.addComment(req, res, (Err, saved) => {
+                    if (Err || !saved) {
+                        return common.sendErrorResponse(res, "Error in adding the comment");
+                    }
+                    return res.send({ msg: "Successfully added the comment",comment:saved });
+                });
+            }
+        );
+    });
+};
+
 module.exports = Post;

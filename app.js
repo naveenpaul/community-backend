@@ -31,9 +31,10 @@ const login = require("./routes/login");
 const activityLogs = require("./routes/activityLogs");
 const files = require("./routes/files");
 const superadmin = require("./routes/superadmin");
-const events=require('./routes/events')
-const posts=require('./routes/posts')
-const community= require("./routes/community")
+const events = require("./routes/events");
+const posts = require("./routes/posts");
+const community = require("./routes/community");
+const user = require("./routes/user");
 /**
  * API keys and Passport configuration.
  */
@@ -56,21 +57,18 @@ mongoose.connect(process.env.MONGODB_URI);
 //   "mongodb://workspaceAdmin:vcxz7890@localhost:27017/oasis?authSource=admin"
 // );
 mongoose.connection.on("error", (err) => {
-  console.error(err);
-  console.log(
-    "%s MongoDB connection error. Please make sure MongoDB is running.",
-    chalk.red("✗")
-  );
-  process.exit();
+    console.error(err);
+    console.log("%s MongoDB connection error. Please make sure MongoDB is running.", chalk.red("✗"));
+    process.exit();
 });
 
 const allowCrossDomain = function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type");
+    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
-  next();
+    next();
 };
 
 /**
@@ -88,39 +86,35 @@ app.use(flash());
 
 app.disable("x-powered-by");
 
+app.use("/", user);
 app.use("/", login);
 app.use("/", activityLogs);
 app.use("/", files);
 app.use("/", superadmin);
-app.use('/',events);
-app.use('/',posts);
-app.use('/',community);
+app.use("/", events);
+app.use("/", posts);
+app.use("/", community);
 app.use(express.static(path.join(__dirname, "downloads")));
 
 /**
  * Error Handler.
  */
 if (process.env.NODE_ENV === "development") {
-  // only use in development
-  app.use(errorHandler());
+    // only use in development
+    app.use(errorHandler());
 } else {
-  app.use((err, req, res, next) => {
-    console.error(err);
-    res.status(500).send("Server Error");
-  });
+    app.use((err, req, res, next) => {
+        console.error(err);
+        res.status(500).send("Server Error");
+    });
 }
 
 /**
  * Start Express server.
  */
 app.listen(app.get("port"), "0.0.0.0", () => {
-  console.log(
-    "%s App is running at http://localhost:%d in %s mode",
-    chalk.green("✓"),
-    app.get("port"),
-    app.get("env")
-  );
-  console.log("  Press CTRL-C to stop\n");
+    console.log("%s App is running at http://localhost:%d in %s mode", chalk.green("✓"), app.get("port"), app.get("env"));
+    console.log("  Press CTRL-C to stop\n");
 });
 
 module.exports = app;

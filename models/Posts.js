@@ -7,9 +7,17 @@ const postsSchema = new mongoose.Schema(
     userId: mongoose.Schema.Types.ObjectId,
     cName: String,
     name: String,
+    text:String,
+    thumbnail:String,
+    poll:[
+      {
+        option:String,
+        userId:[String],
+      }
+    ],
     type: {
       type: String,
-      enum: ["TEXT", "IMG", "VIDEO"],
+      enum: ["TEXT", "IMG", "VIDEO","POLL"],
     },
     likesCount: Number,
     commentsCount: Number,

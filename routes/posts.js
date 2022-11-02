@@ -18,6 +18,7 @@ Router.post('/posts/remove/like', common.authorizeUser, handleRemoveLike);
 Router.post('/posts/update', common.authorizeUser, handleUpdatePosts);
 Router.post('/posts/get/all/comments',common.authorizeUser,handleGetAllComments);
 Router.post('/posts/get/all/likes',common.authorizeUser,handleGetAllLikes);
+Router.post('/post/add/vote',common.authorizeUser,handleAddVote);
 function handleAddPosts(req, res) {
     const userId = common.getUserId(req) || '';
 
@@ -136,6 +137,18 @@ function handleGetAllLikes(req,res){
         }
 
         postController.getAllLikes(req, res, existingUser.emailId);
+    });
+}
+
+function handleAddVote(req,res){
+    const userId = common.getUserId(req) || '';
+
+    userController.findUserByUserId(common.castToObjectId(userId), { emailId: 1 }, (err, existingUser) => {
+        if (err || !existingUser) {
+            return common.sendErrorResponse(res, 'Error getting user details');
+        }
+
+        postController.addVote(req, res, existingUser.emailId);
     });
 }
 

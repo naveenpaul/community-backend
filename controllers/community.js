@@ -23,6 +23,7 @@ Community.prototype.addCommunity = (req, res, liuDetails, callback) => {
         backgroundImg: req.body.backgroundImg,
         staff: [
             {
+                _id:common.castToObjectId(common.getUserId(req)),
                 firstName: liuDetails.firstName,
                 lastName: liuDetails.lastName,
                 emailId: liuDetails.emailId,
@@ -35,13 +36,13 @@ Community.prototype.addCommunity = (req, res, liuDetails, callback) => {
     newCommunity.save(callback);
 };
 
-Community.prototype.getAllCommunity = (req, res, emailId) => {
+Community.prototype.getAllCommunity = (req, res, id) => {
     const projection = req.body.projection || {};
 
     community
         .find(
             {
-                "staff.emailId": emailId,
+                "staff._id": id,
             },
             projection
         )
@@ -64,14 +65,15 @@ Community.prototype.getAllCommunity = (req, res, emailId) => {
         });
 };
 
-Community.prototype.updateCommunity = (req, res, emailId) => {
+Community.prototype.updateCommunity = (req, res, id) => {
     const cId = common.castToObjectId(req.body.cId);
 
     if (!common.validateString(req.body.name)) {
         return common.sendErrorResponse(res, "Enter valid community name");
     }
 
-    community.findOne({ _id: cId, "staff.emailId": emailId, $or: [{ "staff.role": "ADMIN" }, { "staff.role": "WRITER" }] }, (communityErr, existingcomm) => {
+    community.findOne({ _id: cId, 
+        "staff._id": id, $or: [{ "staff.role": "ADMIN" }, { "staff.role": "WRITER" }] }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {
             return common.sendErrorResponse(res, "You don't have access to specified community");
         }
@@ -101,10 +103,11 @@ Community.prototype.updateCommunity = (req, res, emailId) => {
     });
 };
 
-Community.prototype.removeCommunity = (req, res, emailId) => {
+Community.prototype.removeCommunity = (req, res, id) => {
     const cId = common.castToObjectId(req.body.cId);
 
-    community.findOne({ _id: cId, "staff.emailId": emailId, "staff.role": "ADMIN" }, (communityErr, existingcomm) => {
+    community.findOne({ _id: cId, 
+        "staff._id": id, "staff.role": "ADMIN" }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {
             return common.sendErrorResponse(res, "You don't have access to specified community");
         }
@@ -118,7 +121,7 @@ Community.prototype.removeCommunity = (req, res, emailId) => {
     });
 };
 
-Community.prototype.addStaff = (req, res, emailId) => {
+Community.prototype.addStaff = (req, res, id) => {
     const cId = common.castToObjectId(req.body.cId);
     const staff = {
         firstName: req.body.firstName,
@@ -128,7 +131,8 @@ Community.prototype.addStaff = (req, res, emailId) => {
         profilePicUrl: req.body.profilePicUrl,
         role: req.body.role,
     };
-    community.findOne({ _id: cId, "staff.emailId": emailId, "staff.role": "ADMIN" }, (communityErr, existingcomm) => {
+    community.findOne({ _id: cId,
+        "staff._id": id, "staff.role": "ADMIN" }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {
             return common.sendErrorResponse(res, "You don't have access to specified community");
         }
@@ -143,16 +147,17 @@ Community.prototype.addStaff = (req, res, emailId) => {
     });
 };
 
-Community.prototype.removeStaff = (req, res, emailId) => {
-    const staffId = req.body.emailId;
+Community.prototype.removeStaff = (req, res, id) => {
+    const staffId = id;
     const cId = req.body.cId;
     
-    community.findOne({ _id: cId, "staff.emailId": emailId, "staff.role": "ADMIN" }, (communityErr, existingcomm) => {
+    community.findOne({ _id: cId, 
+        "staff._id": id, "staff.role": "ADMIN" }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {
             return common.sendErrorResponse(res, "You don't have access to specified community");
         }
 
-        community.updateOne({ _id: cId }, { $pull: { staff: { emailId: staffId } } }, (updateErr, updateComm) => {
+        community.updateOne({ _id: cId }, { $pull: { staff: { _id:id } } }, (updateErr, updateComm) => {
             if (updateErr || !updateComm) {
                 return common.sendErrorResponse(res, "Failed to remove sfaff");
             }
@@ -162,11 +167,12 @@ Community.prototype.removeStaff = (req, res, emailId) => {
     });
 };
 
-Community.prototype.getAllStaff = (req, res, emailId) => {
+Community.prototype.getAllStaff = (req, res, id) => {
     const projection = {};
     const cId = common.castToObjectId(req.body.cId);
 
-    community.findOne({ _id: cId, "staff.emailId": emailId, "staff.role": "ADMIN" }, (communityErr, existingcomm) => {
+    community.findOne({ _id: cId, 
+        "staff._id": id, "staff.role": "ADMIN" }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {
             return common.sendErrorResponse(res, "You don't have access to specified community");
         }
