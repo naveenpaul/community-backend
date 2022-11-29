@@ -18,6 +18,7 @@ router.post("/user/login", handleUserLogin);
 function handleUserRegistration(req, res) {
   loginController.registerNewUser(req, res, (saveErr, savedUser) => {
     if (saveErr) {
+      console.log(saveErr);
       return common.sendErrorResponse(res, "Error in saving user details");
     } else {
       res.status(200);
@@ -71,7 +72,7 @@ function handleUserLogin(req, res) {
     if (err || !existingUser) {
       common.sendErrorResponse(res, "User is not present, Please sign up");
     } else {
-      if (req.body.loginWith == 'google') {
+      if (req.body.loginWith == 'google' || req.body.loginWith=="MOBILENUMBER") {
         sendLoginResponse(res, existingUser);
 
       } else {

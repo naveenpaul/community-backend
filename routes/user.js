@@ -24,6 +24,10 @@ router.post(
   common.authorizeUser,
   handleUserDetailsByEmail
 );
+router.post("/user/id",common.authorizeUser,handleGetUserById);
+
+
+
 
 function handleUserDetails(req, res) {
   const userId = common.getUserId(req) || "";
@@ -67,6 +71,18 @@ function handleUserSearch(req, res) {
   userController.searchUser(searchQuery, (users) => {
     res.send({
       users: users,
+    });
+  });
+}
+function handleGetUserById(req, res) {
+  const userId = common.castToObjectId(req.body.userId);
+
+  userController.findUserByUserId(userId, {},(error,existingUser) => {
+    if(error|| !existingUser){
+      return common.sendErrorResponse(res,"Error in getting user");
+    }
+    res.send({
+      users: existingUser,
     });
   });
 }
