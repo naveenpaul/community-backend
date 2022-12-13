@@ -5,6 +5,9 @@ const common = new commonUtility();
 const like = require("../controllers/likes");
 const comment = require("./comments");
 const { requestNewAccessToken } = require("passport-oauth2-refresh");
+const User = require("../models/User");
+const { reject } = require("async");
+const UserController = new (require("./user"))();
 
 const likeController = new like();
 const commentController = new comment();
@@ -54,6 +57,64 @@ Post.prototype.getAllPost = (req, res) => {
                 length: existingPost.length,
             });
         });
+};
+
+Post.prototype.getPostsFeed = async (req, res, user) => {
+    const pageNumber = req.params.pageNumber;
+
+    const offset = pageNumber >= 0 ? pageNumber * nPerPage : 0;
+    const limit = req.query.limit ?? 10;
+
+    try {
+        const allPosts = await posts
+            .find()
+            .sort({ createdAt: -1 })
+            .skip(offset)
+            .limit(limit)
+            .exec();
+        
+        if(!allPosts) Promise.reject();
+
+        for (const post of allPosts) {
+            post.isLiked = await isPostLiked(post, user);
+            post.communityLogo = (
+                await community.findOne({ _id: post.cId }, { logo: 1 }).exec()
+            ).logo;
+            post.userName = (
+                await User.findOne({ _id: post.userId }, { fullName: 1 }).exec()
+            ).fullName;
+        }
+
+        res.send({
+            posts: allPosts,
+            msg: "Successfully got all Posts",
+        });
+    } catch (err) { 
+        return common.sendErrorResponse(res, "Error in getting Posts");
+    }
+};
+
+Post.prototype.getPostById = async (req, res, user) => {
+    const filterQuery = {
+        _id: req.params.id,
+    };
+    const projection = {};
+    try {
+        const post = await posts.findOne(filterQuery, projection).exec();
+
+        post.isLiked = await isPostLiked(post, user);
+        post.userName = (
+            await UserController.findUserByUserIdAsync(post.userId, {})
+        ).fullName;
+        post.communityLogo = 88;
+
+        res.send({
+            post: post,
+            msg: "Successfully got the post",
+        });
+    } catch (err) {
+        return common.sendErrorResponse(res, "Error in getting post");
+    }
 };
 
 Post.prototype.updatePost = (req, res, emailId) => {
@@ -278,6 +339,15 @@ Post.prototype.addVote = (req, res, emailId) => {
             }
         );
     });
+};
+
+const isPostLiked = async (post, user) => {
+    const findQuery = {
+        source: "POST", 
+        sourceId: post._id, 
+        userId: user._id
+    };
+    return await likeModel.findOne(findQuery).exec() !== null
 };
 
 module.exports = Post;

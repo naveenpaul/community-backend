@@ -10,6 +10,8 @@ const userController = new userControl();
 
 Router.post('/posts/add', common.authorizeUser, handleAddPosts);
 Router.post('/posts/get/all', common.authorizeUser, handleGetPosts);
+Router.get('/posts/feed/page/:pageNumber', common.authorizeUser, handleGetPostsFeed);
+Router.get('/post/:id', common.authorizeUser, handleGetPostById);
 Router.post('/posts/add/like', common.authorizeUser, handleAddLikes);
 Router.post('/posts/add/comment', common.authorizeUser, handleAddComments);
 Router.post('/posts/remove', common.authorizeUser, handleRemovePost);
@@ -45,6 +47,28 @@ function handleGetPosts(req, res) {
             return common.sendErrorResponse(res, 'Error getting user details');
         }
         postController.getAllPost(req, res);
+    });
+}
+
+function handleGetPostsFeed(req, res) {
+    const userId = common.getUserId(req) || '';
+
+    userController.findUserByUserId(common.castToObjectId(userId), { userId: '' }, (err, existingUser) => {
+        if (err || !existingUser) {
+            return common.sendErrorResponse(res, 'Error getting user details');
+        }
+        postController.getPostsFeed(req, res, existingUser);
+    });
+}
+
+function handleGetPostById(req, res) {
+    const userId = common.getUserId(req) || '';
+
+    userController.findUserByUserId(common.castToObjectId(userId), { userId: '' }, (err, existingUser) => {
+        if (err || !existingUser) {
+            return common.sendErrorResponse(res, 'Error getting user details');
+        }
+        postController.getPostsFeed(req, res, existingUser);
     });
 }
 
