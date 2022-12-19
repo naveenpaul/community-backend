@@ -24,7 +24,7 @@ router.post(
   common.authorizeUser,
   handleUserDetailsByEmail
 );
-router.post("/user/id",common.authorizeUser,handleGetUserById);
+router.get("/user/:id", common.authorizeUser, handleGetUserById);
 
 
 
@@ -34,6 +34,7 @@ function handleUserDetails(req, res) {
   let projection = req.body.projection || common.getUserDetailsFields();
 
   projection.updatedAt = 1;
+  projection.password = 0;
 
   userController.findUserByUserId(
     common.castToObjectId(userId),
@@ -74,6 +75,7 @@ function handleUserSearch(req, res) {
     });
   });
 }
+
 function handleGetUserById(req, res) {
   const userId = common.castToObjectId(req.body.userId);
 

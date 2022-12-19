@@ -8,7 +8,7 @@ const common = new commonUtility();
 const likeController = new like();
 const commentController = new comment();
 
-function Event() {}
+function Event() { }
 
 Event.prototype.addEvent = (req, res, callback) => {
     const newEvent = new event({
@@ -63,6 +63,52 @@ Event.prototype.getAllEvent = (req, res) => {
             });
         });
 };
+
+Event.prototype.getEventsFeed = async (req, res, user) => {
+    const pageNumber = req.params.pageNumber;
+
+    const offset = pageNumber >= 0 ? pageNumber * nPerPage : 0;
+    const limit = req.query.limit ?? 10;
+    const createdBefore = req.query.createdBefore ?? new Date(Date.now()).toISOString;
+
+    try {
+        const allEvents = await event
+            .find({ createdAt: { $lt: createdBefore } })
+            .sort({ createdAt: -1 })
+            .skip(offset)
+            .limit(limit)
+            .exec();
+
+        if (!allEvents) Promise.reject();
+
+        res.send({
+            events: allEvents,
+            msg: "Successfully got Events"
+        });
+
+    } catch (err) {
+        return common.sendErrorResponse(res, "Error in getting Events");
+    }
+}
+
+Event.prototype.getEventById = async (req, res, user) => {
+    const filterQuery = {
+        _id: req.params.postId,
+    };
+    const projection = {};
+    try {
+        const existingEvent = await event.findOne(filterQuery, projection).exeec();
+
+        if (!existingEvent) Promise.reject();
+
+        res.send({
+            event: existingEvent,
+            msg: "Successfully got the event",
+        });
+    } catch (err) {
+        return common.sendErrorResponse(res, "Error in getting event");
+    }
+}
 
 Event.prototype.updateEvent = (req, res, emailId) => {
     const cId = common.castToObjectId(req.body.cId);

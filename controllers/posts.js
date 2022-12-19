@@ -5,25 +5,28 @@ const common = new commonUtility();
 const like = require("../controllers/likes");
 const comment = require("./comments");
 const { requestNewAccessToken } = require("passport-oauth2-refresh");
+const User = require("../models/User");
+const { reject } = require("async");
+const UserController = new (require("./user"))();
 
 const likeController = new like();
 const commentController = new comment();
 
-function Post() {}
+function Post() { }
 
 
 Post.prototype.addPost = (req, res, callback) => {
-    let poll=req.body.poll.map( function(element){return {option:element, userId:[]}});
+    let poll = req.body.poll.map(function (element) { return { option: element, userId: [] } });
     const newPost = new posts({
         cId: req.body.cId,
         cName: req.body.cName,
         name: req.body.name,
         type: req.body.type,
-        text:req.body.text || "",
-        poll:req.body.option,
-        thumbnail:req.body.thumbnail || "",
+        text: req.body.text || "",
+        poll: req.body.option,
+        thumbnail: req.body.thumbnail || "",
         userId: common.getUserId(req),
-        poll:poll,
+        poll: poll,
         likesCount: 0,
         commentsCount: 0,
     });
@@ -56,6 +59,67 @@ Post.prototype.getAllPost = (req, res) => {
         });
 };
 
+Post.prototype.getPostsFeed = async (req, res, user) => {
+    const pageNumber = req.params.pageNumber;
+
+    const offset = pageNumber >= 0 ? pageNumber * nPerPage : 0;
+    const limit = req.query.limit ?? 10;
+    const createdBefore = req.query.createdBefore ?? new Date(Date.now()).toISOString;
+
+    try {
+        const allPosts = await posts
+            .find({ createdAt: { $lt: createdBefore } })
+            .sort({ createdAt: -1 })
+            .skip(offset)
+            .limit(limit)
+            .exec();
+
+        if (!allPosts) Promise.reject();
+
+        for (const post of allPosts) {
+            post.isLiked = await isPostLiked(post, user);
+            post.communityLogo = (
+                await community.findOne({ _id: post.cId }, { logo: 1 }).exec()
+            ).logo;
+            post.userName = (
+                await User.findOne({ _id: post.userId }, { fullName: 1 }).exec()
+            ).fullName;
+        }
+
+        res.send({
+            posts: allPosts,
+            msg: "Successfully got Posts",
+        });
+    } catch (err) {
+        return common.sendErrorResponse(res, "Error in getting Posts");
+    }
+};
+
+Post.prototype.getPostById = async (req, res, user) => {
+    const filterQuery = {
+        _id: req.params.postId,
+    };
+    const projection = {};
+    try {
+        const post = await posts.findOne(filterQuery, projection).exec();
+
+        if (!post) Promise.reject();
+
+        post.isLiked = await isPostLiked(post, user);
+        post.userName = (
+            await UserController.findUserByUserIdAsync(post.userId, {})
+        ).fullName;
+        post.communityLogo = 88;
+
+        res.send({
+            post: post,
+            msg: "Successfully got the post",
+        });
+    } catch (err) {
+        return common.sendErrorResponse(res, "Error in getting post");
+    }
+};
+
 Post.prototype.updatePost = (req, res, emailId) => {
     const cId = common.castToObjectId(req.body.cId);
     const id = common.castToObjectId(req.body.postId);
@@ -74,12 +138,12 @@ Post.prototype.updatePost = (req, res, emailId) => {
                     name: req.body.name,
                     type: req.body.type,
                 },
-            },(Err,updated)=>{
-                if(Err || !updated){
-                    return common.sendErrorResponse(res,"Error in updating the POst");
+            }, (Err, updated) => {
+                if (Err || !updated) {
+                    return common.sendErrorResponse(res, "Error in updating the POst");
                 }
 
-                return res.send({msg:"Updated the post"});
+                return res.send({ msg: "Updated the post" });
             }
         );
     });
@@ -156,7 +220,7 @@ Post.prototype.addComment = (req, res, emailId) => {
                     if (Err || !saved) {
                         return common.sendErrorResponse(res, "Error in adding the comment");
                     }
-                    return res.send({ msg: "Successfully added the comment",comment:saved });
+                    return res.send({ msg: "Successfully added the comment", comment: saved });
                 });
             }
         );
@@ -166,7 +230,7 @@ Post.prototype.addComment = (req, res, emailId) => {
 Post.prototype.removeLike = (req, res, emailId) => {
     const cId = common.castToObjectId(req.body.cId);
     const id = common.castToObjectId(req.body.postId);
-    req.body.sourceId=req.body.postId;
+    req.body.sourceId = req.body.postId;
 
     community.findOne({ _id: cId, "staff.emailId": emailId }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {
@@ -194,7 +258,7 @@ Post.prototype.removeLike = (req, res, emailId) => {
 Post.prototype.removeComment = (req, res, emailId) => {
     const cId = common.castToObjectId(req.body.cId);
     const id = common.castToObjectId(req.body.postId);
-    req.body.sourceId=req.body.postId;
+    req.body.sourceId = req.body.postId;
 
     community.findOne({ _id: cId, "staff.emailId": emailId }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {
@@ -245,7 +309,7 @@ Post.prototype.getAllLikes = (req, res, emailId) => {
             return common.sendErrorResponse(res, "You don't have access to specified community");
         }
 
-        likeController.getAllLikes(req,res);
+        likeController.getAllLikes(req, res);
     });
 };
 
@@ -253,7 +317,7 @@ Post.prototype.addVote = (req, res, emailId) => {
     const cId = common.castToObjectId(req.body.cId);
     const id = common.castToObjectId(req.body.postId);
     req.body.sourceId = req.body.postId;
-    const selectedOption=req.body.selectedOption;
+    const selectedOption = req.body.selectedOption;
 
     community.findOne({ _id: cId, "staff.emailId": emailId }, (communityErr, existingcomm) => {
         if (communityErr || !existingcomm) {
@@ -263,7 +327,7 @@ Post.prototype.addVote = (req, res, emailId) => {
         posts.updateOne(
             { _id: id, },
             {
-                
+
             },
             (Err, updated) => {
                 if (Err || !updated) {
@@ -273,11 +337,20 @@ Post.prototype.addVote = (req, res, emailId) => {
                     if (Err || !saved) {
                         return common.sendErrorResponse(res, "Error in adding the comment");
                     }
-                    return res.send({ msg: "Successfully added the comment",comment:saved });
+                    return res.send({ msg: "Successfully added the comment", comment: saved });
                 });
             }
         );
     });
+};
+
+const isPostLiked = async (post, user) => {
+    const findQuery = {
+        source: "POST",
+        sourceId: post._id,
+        userId: user._id
+    };
+    return await likeModel.findOne(findQuery).exec() !== null
 };
 
 module.exports = Post;

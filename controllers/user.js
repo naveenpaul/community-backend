@@ -31,6 +31,13 @@ UserController.prototype.findUserByUserId = (userId, projection, callback) => {
   });
 };
 
+UserController.prototype.findUserByUserIdAsync = async (userId, projection) => {
+  const filterQuery = {
+    _id: userId
+  }
+  return await User.findOne(filterQuery, projection).exec()
+}
+
 UserController.prototype.getUsers = (filter, callback) => {
   if (!filter) {
     filter = {};
