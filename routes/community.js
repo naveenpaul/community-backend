@@ -10,16 +10,16 @@ const communityController = new community();
 const userController = new userControl();
 const activityLogController = new activityLog();
 
-Router.post("/community/add", common.authorizeUser, handleAddcommunity);
-Router.post("/community/get/all", common.authorizeUser, handleGetcommunity);
-// Router.post("/community/get/",common.authorizeUser,handleGetCommunityById);
+Router.post("/community/add", common.authorizeUser, handleAddCommunity);
+Router.post("/community/get/all", common.authorizeUser, handleGetcommunities);
+Router.post("/community/:communityId",common.authorizeUser,handleGetCommunityById);
 Router.post("/community/remove", common.authorizeUser, handleRemovecommunity);
 Router.post("/community/update", common.authorizeUser, handleUpdatecommunity);
 Router.post("/community/add/staff", common.authorizeUser, handleAddStaff);
 Router.post("/community/remove/staff", common.authorizeUser, handleRemoveStaff);
 Router.post("/community/get/all/staff", common.authorizeUser, handleGetAllStaff);
 
-function handleAddcommunity(req, res) {
+function handleAddCommunity(req, res) {
     const userId = common.getUserId(req) || "";
 
     userController.findUserByUserId(common.castToObjectId(userId), common.getUserDetailsFields(), (err, existingUser) => {
@@ -42,7 +42,7 @@ function handleAddcommunity(req, res) {
     });
 }
 
-function handleGetcommunity(req, res) {
+function handleGetcommunities(req, res) {
     const userId = common.getUserId(req) || "";
 
     userController.findUserByUserId(common.castToObjectId(userId), { _id:1,emailId: 1 }, (err, existingUser) => {
@@ -50,6 +50,15 @@ function handleGetcommunity(req, res) {
             return common.sendErrorResponse(res, "Error getting user details");
         }
         communityController.getAllCommunity(req, res,existingUser._id);
+    });
+}
+
+function handleGetCommunityById(req, res) {
+    userController.findUserByUserId(common.castToObjectId(userId), { _id: 1, emailId: 1 }, (err, existingUser) => {
+        if (err || !existingUser) {
+            return common.sendErrorResponse(res, "Error getting user details");
+        }
+        communityController.getAllCommunity(req, res, existingUser._id);
     });
 }
 

@@ -65,6 +65,22 @@ Community.prototype.getAllCommunity = (req, res, id) => {
         });
 };
 
+Community.prototype.getCommunityById = async (req, res) => {
+    const communityId = req.params.communityId;
+    const filterQuery = { _id: communityId };
+    try {
+        const comm = await community.findOne(filterQuery).exec();
+        if (!comm) Promise.reject();
+
+        return res.send({
+            community: comm,
+            msg: "Successfully fetched community"
+        });
+    } catch (err) {
+        return common.sendErrorResponse(res, "Error getting Community");
+    }
+}
+
 Community.prototype.updateCommunity = (req, res, id) => {
     const cId = common.castToObjectId(req.body.cId);
 

@@ -10,6 +10,8 @@ const userController = new userControl();
 
 Router.post("/events/add", common.authorizeUser, handleAddEvents);
 Router.post("/events/get/all", common.authorizeUser, handleGetEvents);
+Router.get("/events/feed/page/:pageNumber", common.authorizeUser, handleGetEventsFeed);
+Router.get("/event/:eventId", common.authorizeUser, handleGetEventById);
 Router.post("/events/add/like", common.authorizeUser, handleAddLikes);
 Router.post("/events/add/comment", common.authorizeUser, handleAddComments);
 Router.post("/events/remove", common.authorizeUser, handleRemoveEvent);
@@ -45,6 +47,29 @@ function handleGetEvents(req, res) {
             return common.sendErrorResponse(res, "Error getting user details");
         }
         eventController.getAllEvent(req, res);
+    });
+}
+
+function handleGetEventsFeed(req, res) {
+    const userId = common.getUserId(req) || "";
+
+    userController.findUserByUserId(common.castToObjectId(userId), {}, (err, existingUser) => {
+        if (err || !existingUser) {
+            return common.sendErrorResponse(res, "Error getting user details");
+        }
+
+        eventController.getEventsFeed(req, res, existingUser);
+    });
+}
+
+function handleGetEventById(req, res) {
+    const userId = common.getUserId(req) || '';
+
+    userController.findUserByUserId(common.castToObjectId(userId), { userId: '' }, (err, existingUser) => {
+        if (err || !existingUser) {
+            return common.sendErrorResponse(res, 'Error getting user details');
+        }
+        eventController.getEventById(req, res, existingUser);
     });
 }
 

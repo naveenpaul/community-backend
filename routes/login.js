@@ -6,6 +6,7 @@ const commonUtility = require("../common/commonUtility");
 const user = require("../controllers/user");
 const login = require("../controllers/login");
 const activityLog = require("../controllers/activityLogs");
+const User = require("../models/User");
 
 const common = new commonUtility();
 const loginController = new login();
@@ -14,6 +15,7 @@ const activityLogController = new activityLog();
 
 router.post("/user/register", handleUserRegistration);
 router.post("/user/login", handleUserLogin);
+router.post("/user/signin", handleUserSignIn);
 
 function handleUserRegistration(req, res) {
   loginController.registerNewUser(req, res, (saveErr, savedUser) => {
@@ -44,7 +46,7 @@ function sendLoginResponse(res, user) {
     msg: "User logged in successfully",
   });
 
-  activityLogController.insertLogs( {}, user._id, "login", "read", user);
+  activityLogController.insertLogs({}, user._id, "login", "read", user);
 }
 
 function handleUserLogin(req, res) {
@@ -72,7 +74,7 @@ function handleUserLogin(req, res) {
     if (err || !existingUser) {
       common.sendErrorResponse(res, "User is not present, Please sign up");
     } else {
-      if (req.body.loginWith == 'google' || req.body.loginWith=="MOBILENUMBER") {
+      if (req.body.loginWith == 'google' || req.body.loginWith == "MOBILENUMBER") {
         sendLoginResponse(res, existingUser);
 
       } else {
@@ -86,6 +88,27 @@ function handleUserLogin(req, res) {
       }
     }
   });
+}
+
+async function handleUserSignIn(req, res) {
+  const mobileNumber = req.body.mobileNumber.toString();
+  try {
+    if (validator.isMobilePhone(mobileNumber)) {
+      const user = await User.findOne({ mobileNumber: mobileNumber }).exec();
+      if (!user) {
+        res.status(404);
+        res.send({
+          msg: 'User Not Found'
+        });
+      } else {
+        sendLoginResponse(res, user);
+      }
+    } else {
+      common.sendErrorResponse(res, "Invalid Mobile Number");
+    }
+  } catch {
+    common.sendErrorResponse(res, "Failed to Login");
+  }
 }
 
 module.exports = router;
