@@ -1,4 +1,4 @@
-const event = require("../models/events");
+const Events = require("../models/events");
 const like = require("./likes");
 const comment = require("./comments");
 const community = require("../models/community");
@@ -11,7 +11,7 @@ const commentController = new comment();
 function Event() { }
 
 Event.prototype.addEvent = (req, res, callback) => {
-    const newEvent = new event({
+    const newEvent = new Events({
         createdAt: req.body.createdAt,
         updatedAt: req.body.updatedAt,
         cId: req.body.cId,
@@ -41,7 +41,7 @@ Event.prototype.addEvent = (req, res, callback) => {
 Event.prototype.getAllEvent = (req, res) => {
     const cId = req.body.cId == null ? "" : req.body.cId;
 
-    event
+    Events
         .find({
             cId: common.castToObjectId(cId),
         })
@@ -53,7 +53,7 @@ Event.prototype.getAllEvent = (req, res) => {
 
             existingEvent = existingEvent || [];
             existingEvent.forEach((event) => {
-                event.link = "/event/" + event._id;
+                Events.link = "/event/" + Events._id;
             });
 
             return res.send({
@@ -72,7 +72,7 @@ Event.prototype.getEventsFeed = async (req, res, user) => {
     const createdBefore = req.query.createdBefore ?? new Date(Date.now()).toISOString;
 
     try {
-        const allEvents = await event
+        const allEvents = await Events
             .find({ createdAt: { $lt: createdBefore } })
             .sort({ createdAt: -1 })
             .skip(offset)
@@ -97,7 +97,7 @@ Event.prototype.getEventById = async (req, res, user) => {
     };
     const projection = {};
     try {
-        const existingEvent = await event.findOne(filterQuery, projection).exeec();
+        const existingEvent = await Events.findOne(filterQuery, projection).exeec();
 
         if (!existingEvent) Promise.reject();
 
@@ -118,7 +118,7 @@ Event.prototype.updateEvent = (req, res, emailId) => {
         if (communityErr || !existingcomm) {
             return common.sendErrorResponse(res, "You don't have access to specified community");
         }
-        event.updateOne(
+        Events.updateOne(
             { _id: id },
             {
                 $set: {
@@ -161,7 +161,7 @@ Event.prototype.removeEvent = (req, res, emailId) => {
             return common.sendErrorResponse(res, "You don't have access to specified community");
         }
 
-        event.deleteOne({ _id: id }, (deleteErr, deleteEvent) => {
+        Events.deleteOne({ _id: id }, (deleteErr, deleteEvent) => {
             if (deleteErr || !deleteEvent) {
                 return common.sendErrorResponse(res, "Failed to delete the Event");
             }
@@ -207,7 +207,7 @@ Event.prototype.addLike = (req, res, emailId) => {
             return common.sendErrorResponse(res, "You don't have access to specified community");
         }
 
-        event.updateOne(
+        Events.updateOne(
             { _id: id },
             {
                 $inc: { likesCount: 1 },
@@ -237,7 +237,7 @@ Event.prototype.addComment = (req, res, emailId) => {
             return common.sendErrorResponse(res, "You don't have access to specified community");
         }
 
-        event.updateOne(
+        Events.updateOne(
             { _id: id },
             {
                 $inc: { commentsCount: 1 },
@@ -267,7 +267,7 @@ Event.prototype.removeLike = (req, res, emailId) => {
             return common.sendErrorResponse(res, "You don't have access to specified community");
         }
 
-        event.updateOne(
+        Events.updateOne(
             { _id: id },
             {
                 $inc: { likesCount: -1 },
@@ -310,7 +310,7 @@ Event.prototype.removeComment = (req, res, emailId) => {
         if (communityErr || !existingcomm) {
             return common.sendErrorResponse(res, "You don't have access to specified community");
         }
-        event.updateOne(
+        Events.updateOne(
             { _id: id },
             {
                 $inc: { commentsCount: -1 },
