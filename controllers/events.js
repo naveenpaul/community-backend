@@ -1,5 +1,5 @@
 const Events = require("../models/Events");
-const like = require("./likes");
+const like = require("./Likes");
 const comment = require("./comments");
 const community = require("../models/community");
 const commonUtility = require("../common/commonUtility");
