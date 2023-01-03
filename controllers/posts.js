@@ -15,16 +15,17 @@ const commentController = new comment();
 function Post() {}
 
 Post.prototype.addPost = (req, res, callback) => {
-  let poll = req.body.poll.map(function (element) {
-    return { option: element, userId: [] };
-  });
+  let poll = req.body.poll
+    ? req.body.poll.map(function (element) {
+        return { option: element, userId: [] };
+      })
+    : [];
   const newPost = new posts({
     cId: req.body.cId,
     cName: req.body.cName,
     name: req.body.name,
     type: req.body.type,
     text: req.body.text || "",
-    poll: req.body.option,
     thumbnail: req.body.thumbnail || "",
     userId: common.getUserId(req),
     poll: poll,
@@ -61,14 +62,16 @@ Post.prototype.getAllPost = (req, res) => {
 };
 
 Post.prototype.getPostsFeed = async (req, res, user) => {
-  const pageNumber = parseInt(req.params.pageNumber);
+  let pageNumber = parseInt(req.params.pageNumber);
+  if (pageNumber == 0) {
+    pageNumber = 1;
+  }
   const limit = 10;
   const offset = (pageNumber - 1) * limit;
-  const createdBefore = req.query.createdBefore ?? new Date().toISOString;
 
   try {
     const allPosts = await posts
-      .find({ createdAt: { $lt: createdBefore } })
+      .find({ createdAt: { $lt: new Date() } })
       .sort({ createdAt: -1 })
       .skip(offset)
       .limit(limit)
@@ -91,6 +94,7 @@ Post.prototype.getPostsFeed = async (req, res, user) => {
       msg: "Successfully got Posts",
     });
   } catch (err) {
+    console.log(err);
     return common.sendErrorResponse(res, "Error in getting Posts");
   }
 };
