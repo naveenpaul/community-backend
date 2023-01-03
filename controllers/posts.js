@@ -77,7 +77,7 @@ Post.prototype.getPostsFeed = async (req, res, user) => {
     if (!allPosts) Promise.reject();
 
     for (const post of allPosts) {
-      post.isLiked = await isPostLiked(post, user);
+      post.isLiked = false;
       post.communityLogo = (
         await community.findOne({ _id: post.cId }, { logo: 1 }).exec()
       ).logo;
