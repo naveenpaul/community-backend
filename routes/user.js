@@ -26,9 +26,6 @@ router.post(
 );
 router.get("/user/:id", common.authorizeUser, handleGetUserById);
 
-
-
-
 function handleUserDetails(req, res) {
   const userId = common.getUserId(req) || "";
   let projection = req.body.projection || common.getUserDetailsFields();
@@ -77,11 +74,11 @@ function handleUserSearch(req, res) {
 }
 
 function handleGetUserById(req, res) {
-  const userId = common.castToObjectId(req.body.userId);
+  const userId = common.castToObjectId(req.params.id);
 
-  userController.findUserByUserId(userId, {},(error,existingUser) => {
-    if(error|| !existingUser){
-      return common.sendErrorResponse(res,"Error in getting user");
+  userController.findUserByUserId(userId, {}, (error, existingUser) => {
+    if (error || !existingUser) {
+      return common.sendErrorResponse(res, "Error in getting user");
     }
     res.send({
       users: existingUser,

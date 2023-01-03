@@ -101,7 +101,7 @@ Post.prototype.getPostsFeed = async (req, res, user) => {
 
 Post.prototype.getPostById = async (req, res, user) => {
   const filterQuery = {
-    _id: req.params.postId,
+    _id: common.castToObjectId(req.params.postId),
   };
   const projection = {};
   try {
@@ -109,10 +109,8 @@ Post.prototype.getPostById = async (req, res, user) => {
 
     if (!post) Promise.reject();
 
-    post.isLiked = await isPostLiked(post, user);
-    post.userName = (
-      await UserController.findUserByUserIdAsync(post.userId, {})
-    ).fullName;
+    post.isLiked = false;
+    post.userName = "";
     post.communityLogo = 88;
 
     res.send({
