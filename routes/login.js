@@ -74,9 +74,11 @@ function handleUserLogin(req, res) {
     if (err || !existingUser) {
       common.sendErrorResponse(res, "User is not present, Please sign up");
     } else {
-      if (req.body.loginWith == 'google' || req.body.loginWith == "MOBILENUMBER") {
+      if (
+        req.body.loginWith == "google" ||
+        req.body.loginWith == "MOBILENUMBER"
+      ) {
         sendLoginResponse(res, existingUser);
-
       } else {
         existingUser.comparePassword(password, (passwordErr, isMatch) => {
           if (isMatch) {
@@ -98,7 +100,7 @@ async function handleUserSignIn(req, res) {
       if (!user) {
         res.status(404);
         res.send({
-          msg: 'User Not Found'
+          msg: "User Not Found",
         });
       } else {
         sendLoginResponse(res, user);

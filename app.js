@@ -48,27 +48,27 @@ const app = express();
 /**
  * Connect to MongoDB.
  */
-mongoose.set("useFindAndModify", false);
-mongoose.set("useCreateIndex", true);
-mongoose.set("useNewUrlParser", true);
-mongoose.set("useUnifiedTopology", true);
+
 mongoose.connect(process.env.MONGODB_URI);
 // mongoose.connect(
 //   "mongodb://workspaceAdmin:vcxz7890@localhost:27017/oasis?authSource=admin"
 // );
 mongoose.connection.on("error", (err) => {
-    console.error(err);
-    console.log("%s MongoDB connection error. Please make sure MongoDB is running.", chalk.red("✗"));
-    process.exit();
+  console.error(err);
+  console.log(
+    "%s MongoDB connection error. Please make sure MongoDB is running.",
+    chalk.red("✗")
+  );
+  process.exit();
 });
 
 const allowCrossDomain = function (req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Content-Type");
-    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
-    next();
+  next();
 };
 
 /**
@@ -100,21 +100,26 @@ app.use(express.static(path.join(__dirname, "downloads")));
  * Error Handler.
  */
 if (process.env.NODE_ENV === "development") {
-    // only use in development
-    app.use(errorHandler());
+  // only use in development
+  app.use(errorHandler());
 } else {
-    app.use((err, req, res, next) => {
-        console.error(err);
-        res.status(500).send("Server Error");
-    });
+  app.use((err, req, res, next) => {
+    console.error(err);
+    res.status(500).send("Server Error");
+  });
 }
 
 /**
  * Start Express server.
  */
 app.listen(app.get("port"), "0.0.0.0", () => {
-    console.log("%s App is running at http://localhost:%d in %s mode", chalk.green("✓"), app.get("port"), app.get("env"));
-    console.log("  Press CTRL-C to stop\n");
+  console.log(
+    "%s App is running at http://localhost:%d in %s mode",
+    chalk.green("✓"),
+    app.get("port"),
+    app.get("env")
+  );
+  console.log("  Press CTRL-C to stop\n");
 });
 
 module.exports = app;
