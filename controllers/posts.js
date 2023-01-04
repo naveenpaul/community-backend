@@ -71,16 +71,16 @@ Post.prototype.getPostsFeed = (req, res, user) => {
     .sort({ createdAt: -1 })
     .skip(offset)
     .limit(limit)
+    .lean()
     .exec(function (err, allPosts) {
       likeController.isPostLiked(
         _.map(allPosts, "_id"),
         user,
         function (err, likesMap) {
-          console.log(likesMap);
-          for (const post of allPosts) {
-            post.isLiked = likesMap(String(post._id)) || false;
+          allPosts.forEach((post) => {
+            post.isLiked = likesMap[post._id] ? true : false;
             post.userName = user.fullName;
-          }
+          });
 
           res.send({
             posts: allPosts,
