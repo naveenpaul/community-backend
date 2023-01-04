@@ -196,6 +196,7 @@ Post.prototype.addLike = (req, res, user) => {
 };
 
 Post.prototype.addComment = (req, res, user) => {
+  req.body.source = "POST";
   posts.updateOne(
     { _id: common.castToObjectId(req.body.sourceId) },
     {
