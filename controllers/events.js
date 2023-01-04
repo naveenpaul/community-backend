@@ -10,10 +10,10 @@ const commentController = new comment();
 
 function Event() {}
 
-Event.prototype.addEvent = (req, res, callback) => {
+Event.prototype.addEvent = (req, res, existingUser, callback) => {
   const newEvent = new Events({
-    createdAt: req.body.createdAt,
-    updatedAt: req.body.updatedAt,
+    createdAt: new Date(),
+    updatedAt: new Date(),
     cId: req.body.cId,
     cName: req.body.cName,
     name: req.body.name,
@@ -22,8 +22,8 @@ Event.prototype.addEvent = (req, res, callback) => {
       long: req.body.location.long,
       lat: req.body.location.lat,
     },
-    startDate: req.body.startDate,
-    endDate: req.body.endDate,
+    startDate: new Date(req.body.startDate),
+    endDate: new Date(req.body.endDate),
     address: {
       name: req.body.address,
       city: req.body.city,
@@ -258,44 +258,23 @@ Event.prototype.addLike = (req, res, emailId) => {
   );
 };
 
-Event.prototype.addComment = (req, res, emailId) => {
-  const cId = common.castToObjectId(req.body.cId);
-  const id = common.castToObjectId(req.body.eventId);
-  req.body.sourceId = req.body.eventId;
-
-  community.findOne(
-    { _id: cId, "staff.emailId": emailId },
-    (communityErr, existingcomm) => {
-      if (communityErr || !existingcomm) {
-        return common.sendErrorResponse(
-          res,
-          "You don't have access to specified community"
-        );
+Event.prototype.addComment = (req, res, user) => {
+  req.body.source = "EVENT";
+  Events.updateOne(
+    { _id: id },
+    {
+      $inc: { commentsCount: 1 },
+    },
+    (Err, updated) => {
+      if (Err || !updated) {
+        return common.sendErrorResponse(res, "error in incrementing the count");
       }
-
-      Events.updateOne(
-        { _id: id },
-        {
-          $inc: { commentsCount: 1 },
-        },
-        (Err, updated) => {
-          if (Err || !updated) {
-            return common.sendErrorResponse(
-              res,
-              "error in incrementing the count"
-            );
-          }
-          commentController.addComment(req, res, (Err, saved) => {
-            if (Err || !saved) {
-              return common.sendErrorResponse(
-                res,
-                "Error in adding the comment"
-              );
-            }
-            return res.send({ msg: "Successfully added the comment" });
-          });
+      commentController.addComment(req, res, user, (Err, saved) => {
+        if (Err || !saved) {
+          return common.sendErrorResponse(res, "Error in adding the comment");
         }
-      );
+        return res.send({ msg: "Successfully added the comment" });
+      });
     }
   );
 };
