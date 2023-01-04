@@ -50,6 +50,12 @@ CommonUtility.prototype.castToObjectId = (id) => {
   return mongoose.Types.ObjectId(id);
 };
 
+CommonUtility.prototype.castToObjectIdList = (ids) => {
+  return ids.map((id) => {
+    mongoose.Types.ObjectId(String(id));
+  });
+};
+
 CommonUtility.prototype.isObjectId = (id) => {
   if (!new CommonUtility().validateString(id)) {
     return false;

@@ -22,8 +22,8 @@ Router.post("/posts/remove", common.authorizeUser, handleRemovePost);
 Router.post("/posts/remove/comment", common.authorizeUser, handleRemoveComment);
 Router.post("/posts/remove/like", common.authorizeUser, handleRemoveLike);
 Router.post("/posts/update", common.authorizeUser, handleUpdatePosts);
-Router.post(
-  "/posts/get/all/comments",
+Router.get(
+  "/posts/get/all/comments/:pageNumber",
   common.authorizeUser,
   handleGetAllComments
 );
@@ -132,13 +132,13 @@ function handleAddLikes(req, res) {
 
   userController.findUserByUserId(
     common.castToObjectId(userId),
-    { emailId: 1 },
+    { _id: 0 },
     (err, existingUser) => {
       if (err || !existingUser) {
         return common.sendErrorResponse(res, "Error getting user details");
       }
 
-      postController.addLike(req, res, existingUser.emailId);
+      postController.addLike(req, res, existingUser);
     }
   );
 }
@@ -147,13 +147,9 @@ function handleAddComments(req, res) {
 
   userController.findUserByUserId(
     common.castToObjectId(userId),
-    { emailId: 1 },
+    { _id: 0 },
     (err, existingUser) => {
-      if (err || !existingUser) {
-        return common.sendErrorResponse(res, "Error getting user details");
-      }
-
-      postController.addComment(req, res, existingUser.emailId);
+      postController.addComment(req, res, existingUser);
     }
   );
 }
@@ -189,19 +185,7 @@ function handleRemoveComment(req, res) {
   );
 }
 function handleGetAllComments(req, res) {
-  const userId = common.getUserId(req) || "";
-
-  userController.findUserByUserId(
-    common.castToObjectId(userId),
-    { emailId: 1 },
-    (err, existingUser) => {
-      if (err || !existingUser) {
-        return common.sendErrorResponse(res, "Error getting user details");
-      }
-
-      postController.getAllComment(req, res, existingUser.emailId);
-    }
-  );
+  postController.getAllComment(req, res);
 }
 
 function handleGetAllLikes(req, res) {

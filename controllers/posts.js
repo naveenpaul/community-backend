@@ -4,10 +4,10 @@ const commonUtility = require("../common/commonUtility");
 const common = new commonUtility();
 const like = require("../controllers/likes");
 const comment = require("./comments");
-const { requestNewAccessToken } = require("passport-oauth2-refresh");
 const User = require("../models/User");
 const { reject } = require("async");
 const UserController = new (require("./user"))();
+const _ = require("lodash");
 
 const likeController = new like();
 const commentController = new comment();
@@ -61,42 +61,34 @@ Post.prototype.getAllPost = (req, res) => {
     });
 };
 
-Post.prototype.getPostsFeed = async (req, res, user) => {
+Post.prototype.getPostsFeed = (req, res, user) => {
   let pageNumber = parseInt(req.params.pageNumber);
-  if (pageNumber == 0) {
-    pageNumber = 1;
-  }
   const limit = 10;
   const offset = (pageNumber - 1) * limit;
 
-  try {
-    const allPosts = await posts
-      .find({ createdAt: { $lt: new Date() } })
-      .sort({ createdAt: -1 })
-      .skip(offset)
-      .limit(limit)
-      .exec();
+  posts
+    .find({ createdAt: { $lt: new Date() } })
+    .sort({ createdAt: -1 })
+    .skip(offset)
+    .limit(limit)
+    .exec(function (err, allPosts) {
+      likeController.isPostLiked(
+        _.map(allPosts, "_id"),
+        user,
+        function (err, likesMap) {
+          console.log(likesMap);
+          for (const post of allPosts) {
+            post.isLiked = likesMap(String(post._id)) || false;
+            post.userName = user.fullName;
+          }
 
-    if (!allPosts) Promise.reject();
-
-    for (const post of allPosts) {
-      post.isLiked = false;
-      post.communityLogo = (
-        await community.findOne({ _id: post.cId }, { logo: 1 }).exec()
-      ).logo;
-      post.userName = (
-        await User.findOne({ _id: post.userId }, { fullName: 1 }).exec()
-      ).fullName;
-    }
-
-    res.send({
-      posts: allPosts,
-      msg: "Successfully got Posts",
+          res.send({
+            posts: allPosts,
+            msg: "Successfully got Posts",
+          });
+        }
+      );
     });
-  } catch (err) {
-    console.log(err);
-    return common.sendErrorResponse(res, "Error in getting Posts");
-  }
 };
 
 Post.prototype.getPostById = async (req, res, user) => {
@@ -182,85 +174,46 @@ Post.prototype.removePost = (req, res, emailId) => {
   );
 };
 
-Post.prototype.addLike = (req, res, emailId) => {
-  const cId = common.castToObjectId(req.body.cId);
-  const id = common.castToObjectId(req.body.postId);
-  req.body.sourceId = req.body.postId;
-
-  community.findOne(
-    { _id: cId, "staff.emailId": emailId },
-    (communityErr, existingcomm) => {
-      if (communityErr || !existingcomm) {
-        return common.sendErrorResponse(
-          res,
-          "You don't have access to specified community"
-        );
+Post.prototype.addLike = (req, res, user) => {
+  const id = common.castToObjectId(req.body.sourceId);
+  posts.updateOne(
+    { _id: id },
+    {
+      $inc: { likesCount: 1 },
+    },
+    (Err, updated) => {
+      if (Err || !updated) {
+        return common.sendErrorResponse(res, "error in incrementing the count");
       }
-      posts.updateOne(
-        { _id: id },
-        {
-          $inc: { likesCount: 1 },
-        },
-        (Err, updated) => {
-          if (Err || !updated) {
-            return common.sendErrorResponse(
-              res,
-              "error in incrementing the count"
-            );
-          }
-          likeController.addLike(req, res, (Err, saved) => {
-            if (Err || !saved) {
-              return common.sendErrorResponse(res, "Error in adding the like");
-            }
-            return res.send({ msg: "Successfully added the like" });
-          });
+      likeController.addLike(req, res, user, (Err, saved) => {
+        if (Err || !saved) {
+          return common.sendErrorResponse(res, "Error in adding the like");
         }
-      );
+        return res.send({ msg: "Successfully added the like" });
+      });
     }
   );
 };
 
-Post.prototype.addComment = (req, res, emailId) => {
-  const cId = common.castToObjectId(req.body.cId);
-  const id = common.castToObjectId(req.body.postId);
-  req.body.sourceId = req.body.postId;
-
-  community.findOne(
-    { _id: cId, "staff.emailId": emailId },
-    (communityErr, existingcomm) => {
-      if (communityErr || !existingcomm) {
-        return common.sendErrorResponse(
-          res,
-          "You don't have access to specified community"
-        );
+Post.prototype.addComment = (req, res, user) => {
+  posts.updateOne(
+    { _id: common.castToObjectId(req.body.sourceId) },
+    {
+      $inc: { commentsCount: 1 },
+    },
+    (Err, updated) => {
+      if (Err || !updated) {
+        return common.sendErrorResponse(res, "error in incrementing the count");
       }
-
-      posts.updateOne(
-        { _id: id },
-        {
-          $inc: { commentsCount: 1 },
-        },
-        (Err, updated) => {
-          if (Err || !updated) {
-            return common.sendErrorResponse(
-              res,
-              "error in incrementing the count"
-            );
-          }
-          commentController.addComment(req, res, (Err, saved) => {
-            if (Err || !saved) {
-              return common.sendErrorResponse(
-                res,
-                "Error in adding the comment"
-              );
-            }
-            return res.send({
-              msg: "Successfully added the comment",
-              comment: saved,
-            });
-          });
+      commentController.addComment(req, res, user, (Err, saved) => {
+        if (Err || !saved) {
+          return common.sendErrorResponse(res, "Error in adding the comment");
         }
-      );
+        return res.send({
+          msg: "Successfully added the comment",
+          comment: saved,
+        });
+      });
     }
   );
 };
@@ -344,24 +297,8 @@ Post.prototype.removeComment = (req, res, emailId) => {
   );
 };
 
-Post.prototype.getAllComment = (req, res, emailId) => {
-  const cId = common.castToObjectId(req.body.cId);
-  const id = common.castToObjectId(req.body.postId);
-  req.body.sourceId = req.body.postId;
-
-  community.findOne(
-    { _id: cId, "staff.emailId": emailId },
-    (communityErr, existingcomm) => {
-      if (communityErr || !existingcomm) {
-        return common.sendErrorResponse(
-          res,
-          "You don't have access to specified community"
-        );
-      }
-
-      commentController.getAllComments(req, res);
-    }
-  );
+Post.prototype.getAllComment = (req, res) => {
+  commentController.getAllComments(req, res);
 };
 
 Post.prototype.getAllLikes = (req, res, emailId) => {
@@ -419,15 +356,6 @@ Post.prototype.addVote = (req, res, emailId) => {
       });
     }
   );
-};
-
-const isPostLiked = async (post, user) => {
-  const findQuery = {
-    source: "POST",
-    sourceId: post._id,
-    userId: user._id,
-  };
-  return (await likeModel.findOne(findQuery).exec()) !== null;
 };
 
 module.exports = Post;
