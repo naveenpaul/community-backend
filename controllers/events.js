@@ -66,10 +66,10 @@ Event.prototype.getAllEvent = (req, res) => {
 Event.prototype.getEventsFeed = async (req, res, user) => {
   const pageNumber = req.params.pageNumber;
 
-  const offset = pageNumber >= 0 ? pageNumber * nPerPage : 0;
   const limit = req.query.limit ?? 10;
+  const offset = pageNumber >= 0 ? pageNumber * limit : 0;
   const createdBefore =
-    req.query.createdBefore ?? new Date(Date.now()).toISOString;
+    req.query.createdBefore ?? new Date().toISOString();
 
   try {
     const allEvents = await Events.find({ createdAt: { $lt: createdBefore } })
