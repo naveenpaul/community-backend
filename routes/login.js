@@ -8,8 +8,8 @@ const login = require("../controllers/login");
 const activityLog = require("../controllers/activityLogs");
 const User = require("../models/User");
 const axios = require("axios");
-const msg91 = require("msg91").default;
-msg91.initialize({ authKey: "388021A2LBF7gU63b6c848P1" });
+// const msg91 = require("msg91").default;
+// msg91.initialize({ authKey: "388021A2LBF7gU63b6c848P1" });
 
 const common = new commonUtility();
 const loginController = new login();
