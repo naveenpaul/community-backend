@@ -63,30 +63,21 @@ Event.prototype.getAllEvent = (req, res) => {
     });
 };
 
-Event.prototype.getEventsFeed = async (req, res, user) => {
-  const pageNumber = req.params.pageNumber;
-
-  const limit = req.query.limit ?? 10;
-  const offset = pageNumber >= 0 ? pageNumber * limit : 0;
-  const createdBefore =
-    req.query.createdBefore ?? new Date().toISOString();
-
-  try {
-    const allEvents = await Events.find({ createdAt: { $lt: createdBefore } })
-      .sort({ createdAt: -1 })
-      .skip(offset)
-      .limit(limit)
-      .exec();
-
-    if (!allEvents) Promise.reject();
-
-    res.send({
-      events: allEvents,
-      msg: "Successfully got Events",
+Event.prototype.getEventsFeed = (req, res, user) => {
+  let pageNumber = parseInt(req.params.pageNumber);
+  const limit = 10;
+  const offset = (pageNumber - 1) * limit;
+  Events.find()
+    .sort({ createdAt: -1 })
+    .skip(offset)
+    .limit(limit)
+    .lean()
+    .exec(function (err, allEvents) {
+      res.send({
+        events: allEvents,
+        msg: "Successfully got Events",
+      });
     });
-  } catch (err) {
-    return common.sendErrorResponse(res, "Error in getting Events");
-  }
 };
 
 Event.prototype.getEventById = async (req, res, user) => {
