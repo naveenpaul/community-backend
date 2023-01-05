@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema({
   updatedAt: Date,
   registeredWith: {
     type: String,
-    enum: ["EMAILID", "MOBILENUMBER", "GMAIL", "FACEBOOK"],
+    enum: ["EMAILID", "MOBILENUMBER", "gmail", "FACEBOOK"],
   },
 });
 

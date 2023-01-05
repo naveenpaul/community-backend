@@ -7,6 +7,9 @@ const user = require("../controllers/user");
 const login = require("../controllers/login");
 const activityLog = require("../controllers/activityLogs");
 const User = require("../models/User");
+const axios = require("axios");
+const msg91 = require("msg91").default;
+msg91.initialize({ authKey: "388021A2LBF7gU63b6c848P1" });
 
 const common = new commonUtility();
 const loginController = new login();
@@ -14,8 +17,32 @@ const userController = new user();
 const activityLogController = new activityLog();
 
 router.post("/user/register", handleUserRegistration);
+router.post("/user/register/gmail", handleUserRegistrationGmail);
 router.post("/user/login", handleUserLogin);
 router.post("/user/signin", handleUserSignIn);
+
+function handleUserRegistrationGmail(req, res) {
+  loginController.registerNewUserWithGmail(req, res, (saveErr, savedUser) => {
+    if (saveErr) {
+      console.log(saveErr);
+      return common.sendErrorResponse(res, "Error in saving user details");
+    } else {
+      res.status(200);
+      res.send({
+        msg: "User added successfully",
+        credentials: common.composeUserLoginCredentials(savedUser),
+      });
+
+      activityLogController.insertLogs(
+        {},
+        savedUser._id,
+        "register",
+        "create",
+        savedUser
+      );
+    }
+  });
+}
 
 function handleUserRegistration(req, res) {
   loginController.registerNewUser(req, res, (saveErr, savedUser) => {
