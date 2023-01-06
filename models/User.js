@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema({
   fullName: String,
   emailId: String,
   profilePicUrl: String,
-  mobileNumber: { type: String },
+  mobileNumber: { type: String, unique: true },
   password: String,
   designation: String,
   address: String,
