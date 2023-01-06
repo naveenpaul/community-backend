@@ -12,112 +12,156 @@ const activityLogController = new activityLog();
 
 Router.post("/community/add", common.authorizeUser, handleAddCommunity);
 Router.post("/community/get/all", common.authorizeUser, handleGetcommunities);
-Router.post("/community/:communityId",common.authorizeUser,handleGetCommunityById);
+Router.post(
+  "/community/:communityId",
+  common.authorizeUser,
+  handleGetCommunityById
+);
 Router.post("/community/remove", common.authorizeUser, handleRemovecommunity);
 Router.post("/community/update", common.authorizeUser, handleUpdatecommunity);
 Router.post("/community/add/staff", common.authorizeUser, handleAddStaff);
 Router.post("/community/remove/staff", common.authorizeUser, handleRemoveStaff);
-Router.post("/community/get/all/staff", common.authorizeUser, handleGetAllStaff);
+Router.post(
+  "/community/get/all/staff",
+  common.authorizeUser,
+  handleGetAllStaff
+);
 
 function handleAddCommunity(req, res) {
-    const userId = common.getUserId(req) || "";
+  const userId = common.getUserId(req) || "";
 
-    userController.findUserByUserId(common.castToObjectId(userId), common.getUserDetailsFields(), (err, existingUser) => {
-        if (err || !existingUser) {
-            return common.sendErrorResponse(res, "Error getting user details");
+  userController.findUserByUserId(
+    common.castToObjectId(userId),
+    common.getUserDetailsFields(),
+    (err, existingUser) => {
+      if (err || !existingUser) {
+        return common.sendErrorResponse(res, "Error getting user details");
+      }
+
+      communityController.addCommunity(
+        req,
+        res,
+        existingUser,
+        (communityErr, savedCommunity) => {
+          if (communityErr || !savedCommunity) {
+            return common.sendErrorResponse(
+              res,
+              "Error in saving community details"
+            );
+          }
+
+          res.send({
+            msg: "community saved successfully",
+            community: savedCommunity,
+          });
+
+          activityLogController.insertLogs(
+            {},
+            savedCommunity._id,
+            "community",
+            "create",
+            existingUser
+          );
         }
-
-        communityController.addCommunity(req, res, existingUser, (communityErr, savedCommunity) => {
-            if (communityErr || !savedCommunity) {
-                return common.sendErrorResponse(res, "Error in saving community details");
-            }
-
-            res.send({
-                msg: "community saved successfully",
-                community: savedCommunity,
-            });
-
-            activityLogController.insertLogs({}, savedCommunity._id, "community", "create", existingUser);
-        });
-    });
+      );
+    }
+  );
 }
 
 function handleGetcommunities(req, res) {
-    const userId = common.getUserId(req) || "";
-
-    userController.findUserByUserId(common.castToObjectId(userId), { _id:1,emailId: 1 }, (err, existingUser) => {
-        if (err || !existingUser) {
-            return common.sendErrorResponse(res, "Error getting user details");
-        }
-        communityController.getAllCommunity(req, res,existingUser._id);
-    });
+  const userId = common.getUserId(req) || "";
+  communityController.getAllCommunity(req, res, userId);
 }
 
 function handleGetCommunityById(req, res) {
-    userController.findUserByUserId(common.castToObjectId(userId), { _id: 1, emailId: 1 }, (err, existingUser) => {
-        if (err || !existingUser) {
-            return common.sendErrorResponse(res, "Error getting user details");
-        }
-        communityController.getAllCommunity(req, res, existingUser._id);
-    });
+  userController.findUserByUserId(
+    common.castToObjectId(userId),
+    { _id: 1, emailId: 1 },
+    (err, existingUser) => {
+      if (err || !existingUser) {
+        return common.sendErrorResponse(res, "Error getting user details");
+      }
+      communityController.getAllCommunity(req, res, existingUser._id);
+    }
+  );
 }
 
 function handleUpdatecommunity(req, res) {
-    const userId = common.getUserId(req) || "";
+  const userId = common.getUserId(req) || "";
 
-    userController.findUserByUserId(common.castToObjectId(userId), { emailId: 1 }, (err, existingUser) => {
-        if (err || !existingUser) {
-            return common.sendErrorResponse(res, "Error getting user details");
-        }
+  userController.findUserByUserId(
+    common.castToObjectId(userId),
+    { emailId: 1 },
+    (err, existingUser) => {
+      if (err || !existingUser) {
+        return common.sendErrorResponse(res, "Error getting user details");
+      }
 
-        communityController.updateCommunity(req, res, existingUser._id);
-    });
+      communityController.updateCommunity(req, res, existingUser._id);
+    }
+  );
 }
 function handleRemovecommunity(req, res) {
-    const userId = common.getUserId(req) || "";
+  const userId = common.getUserId(req) || "";
 
-    userController.findUserByUserId(common.castToObjectId(userId), { emailId: 1 }, (err, existingUser) => {
-        if (err || !existingUser) {
-            return common.sendErrorResponse(res, "Error getting user details");
-        }
+  userController.findUserByUserId(
+    common.castToObjectId(userId),
+    { emailId: 1 },
+    (err, existingUser) => {
+      if (err || !existingUser) {
+        return common.sendErrorResponse(res, "Error getting user details");
+      }
 
-        communityController.removeCommunity(req, res, existingUser._id);
-    });
+      communityController.removeCommunity(req, res, existingUser._id);
+    }
+  );
 }
 
 function handleAddStaff(req, res) {
-    const userId = common.getUserId(req) || "";
+  const userId = common.getUserId(req) || "";
 
-    userController.findUserByUserId(common.castToObjectId(userId), { emailId: 1 }, (err, existingUser) => {
-        if (err || !existingUser) {
-            return common.sendErrorResponse(res, "Error getting user details");
-        }
+  userController.findUserByUserId(
+    common.castToObjectId(userId),
+    { emailId: 1 },
+    (err, existingUser) => {
+      if (err || !existingUser) {
+        return common.sendErrorResponse(res, "Error getting user details");
+      }
 
-        communityController.addStaff(req, res, existingUser._id);
-    });
+      communityController.addStaff(req, res, existingUser._id);
+    }
+  );
 }
 
 function handleRemoveStaff(req, res) {
-    const userId = common.getUserId(req) || "";
+  const userId = common.getUserId(req) || "";
 
-    userController.findUserByUserId(common.castToObjectId(userId), { emailId: 1 }, (err, existingUser) => {
-        if (err || !existingUser) {
-            return common.sendErrorResponse(res, "Error getting user details");
-        }
+  userController.findUserByUserId(
+    common.castToObjectId(userId),
+    { emailId: 1 },
+    (err, existingUser) => {
+      if (err || !existingUser) {
+        return common.sendErrorResponse(res, "Error getting user details");
+      }
 
-        communityController.removeStaff(req, res, existingUser._id);
-    });
+      communityController.removeStaff(req, res, existingUser._id);
+    }
+  );
 }
 function handleGetAllStaff(req, res) {
-    const userId = common.getUserId(req) || "";
+  const userId = common.getUserId(req) || "";
 
-    userController.findUserByUserId(common.castToObjectId(userId), { emailId: 1 }, (err, existingUser) => {
-        if (err || !existingUser) {
-            return common.sendErrorResponse(res, "Error getting user details");
-        }
+  userController.findUserByUserId(
+    common.castToObjectId(userId),
+    { emailId: 1 },
+    (err, existingUser) => {
+      if (err || !existingUser) {
+        return common.sendErrorResponse(res, "Error getting user details");
+      }
 
-        communityController.getAllStaff(req, res, existingUser._id);
-    });
+      communityController.getAllStaff(req, res, existingUser._id);
+    }
+  );
 }
 
 module.exports = Router;
