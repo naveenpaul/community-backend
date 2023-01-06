@@ -65,6 +65,9 @@ Event.prototype.getAllEvent = (req, res) => {
 
 Event.prototype.getEventsFeed = (req, res, user) => {
   let pageNumber = parseInt(req.params.pageNumber);
+  if (pageNumber == 0) {
+    pageNumber = 1;
+  }
   const limit = 10;
   const offset = (pageNumber - 1) * limit;
   Events.find()
