@@ -4,6 +4,7 @@ const comment = require("./comments");
 const community = require("../models/community");
 const commonUtility = require("../common/commonUtility");
 const common = new commonUtility();
+const _ = require("lodash");
 
 const likeController = new like();
 const commentController = new comment();
@@ -76,10 +77,20 @@ Event.prototype.getEventsFeed = (req, res, user) => {
     .limit(limit)
     .lean()
     .exec(function (err, allEvents) {
-      res.send({
-        events: allEvents,
-        msg: "Successfully got Events",
-      });
+      likeController.isPostLiked(
+        _.map(allEvents, "_id"),
+        user,
+        function (err, likesMap) {
+          allEvents.forEach((post) => {
+            post.isLiked = likesMap[post._id] ? true : false;
+            post.userName = user.fullName;
+          });
+          res.send({
+            events: allEvents,
+            msg: "Successfully got Events",
+          });
+        }
+      );
     });
 };
 
@@ -311,20 +322,6 @@ Event.prototype.removeLike = (req, res, emailId) => {
     }
   );
 };
-
-// Event.prototype.updateComment=(req,res,emailId)=>{
-//     const cId = common.castToObjectId(req.body.cId);
-//     const id = common.castToObjectId(req.body.eventId);
-
-//     community.findOne({ _id: cId, 'staff.emailId': emailId }, (communityErr, existingcomm) => {
-//         if (communityErr || !existingcomm) {
-//             return common.sendErrorResponse(res, "You don't have access to specified community");
-//         }
-//         commentController.removeComment(req,res);
-
-//     });
-
-// }
 
 Event.prototype.removeComment = (req, res, emailId) => {
   const cId = common.castToObjectId(req.body.cId);

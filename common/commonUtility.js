@@ -47,6 +47,9 @@ CommonUtility.prototype.composeUserLoginCredentials = function (user) {
 };
 
 CommonUtility.prototype.castToObjectId = (id) => {
+  if (!id) {
+    return "not_found";
+  }
   return mongoose.Types.ObjectId(id);
 };
 
