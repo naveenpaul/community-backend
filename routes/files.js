@@ -1,9 +1,7 @@
 const express = require("express");
 const router = express.Router();
-
 const commonUtility = require("../common/commonUtility");
 const files = require("../controllers/files");
-
 const common = new commonUtility();
 const filesController = new files();
 
@@ -26,22 +24,19 @@ router.get("/file/download/:uniqFileName", handleDownloadtFileByUniqName);
 
 function handleFileUpload(req, res) {
   const files = req.files || [];
-  const sourceId = req.body.sourceId;
 
   if (files.length == 0) {
     return common.sendErrorResponse(res, "No file uploaded");
   }
 
-  if (!common.isObjectId(sourceId)) {
+  if (!req.body.sourceId) {
     return common.sendErrorResponse(res, "Enter valid source Id");
   }
 
   const uploadFile = files[0];
   const uploadObj = {
-    sourceId: req.body.sourceId,
     source: req.body.source,
-    projectId: req.body.projectId,
-    sectionId: req.body.sectionId,
+    sourceId: common.isObjectId(req.body.sourceId),
     type: filesController.extractTypeFromMimeType(uploadFile.mimetype),
     fileName: uploadFile.fieldname,
     uniqFileName: uploadFile.originalname,

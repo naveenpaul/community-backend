@@ -31,7 +31,6 @@ function handleUserDetails(req, res) {
   let projection = req.body.projection || common.getUserDetailsFields();
 
   projection.updatedAt = 1;
-  projection.password = 0;
 
   userController.findUserByUserId(
     common.castToObjectId(userId),
