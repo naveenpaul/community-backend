@@ -14,7 +14,7 @@ const commentController = new comment();
 
 function Post() {}
 
-Post.prototype.addPost = (req, res, callback) => {
+Post.prototype.addPost = (req, res, user, callback) => {
   let poll = req.body.poll
     ? req.body.poll.map(function (element) {
         return { option: element, userId: [] };
@@ -31,6 +31,7 @@ Post.prototype.addPost = (req, res, callback) => {
     poll: poll,
     likesCount: 0,
     commentsCount: 0,
+    userProfile: user,
   });
   newPost.save(callback);
 };

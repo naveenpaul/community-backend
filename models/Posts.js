@@ -4,7 +4,6 @@ const postsSchema = new mongoose.Schema(
     createdAt: Date,
     updatedAt: Date,
     cId: mongoose.Schema.Types.ObjectId,
-    userId: mongoose.Schema.Types.ObjectId,
     cName: String,
     name: String,
     text: String,
@@ -29,6 +28,14 @@ const postsSchema = new mongoose.Schema(
     ],
     likesCount: Number,
     commentsCount: Number,
+    userProfile: {
+      userId: mongoose.Schema.Types.ObjectId,
+      firstName: String,
+      lastName: String,
+      fullName: String,
+      emailId: String,
+      profilePicUrl: String,
+    },
   },
   { timestamps: true }
 );

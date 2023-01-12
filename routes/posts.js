@@ -34,12 +34,12 @@ function handleAddPosts(req, res) {
 
   userController.findUserByUserId(
     common.castToObjectId(userId),
-    { emailId: 1 },
+    { _id: 0 },
     (err, existingUser) => {
       if (err || !existingUser) {
         return common.sendErrorResponse(res, "Error getting User Details");
       }
-      postController.addPost(req, res, (Err, saved) => {
+      postController.addPost(req, res, existingUser, (Err, saved) => {
         if (Err || !saved) {
           return common.sendErrorResponse(res, "Error in adding the Post");
         }
