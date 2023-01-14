@@ -53,7 +53,6 @@ Like.prototype.getAllLikes = (req, res) => {
 };
 Like.prototype.removeLike = (req, res) => {
   const id = common.castToObjectId(req.body.sourceId);
-
   like.deleteOne(
     { sourceId: id, userId: common.getUserId(req) },
     (deleteErr, deleteEvent) => {

@@ -29,9 +29,17 @@ Files.prototype.uploadFileCloud = (filePath, uploadFileObj, res) => {
           return common.sendErrorResponse(res, "Error in upload file to S3");
         }
 
+        console.log(uploadedFile);
+        console.log(uploadFileObj);
+
+        uploadFileObj.location =
+          "https://dev-oasis-project-files.s3.ap-south-1.amazonaws.com/" +
+          uploadFileObj.uniqFileName;
+
         const newFlile = new FilesModel(uploadFileObj);
 
         newFlile.save((fileSaveErr, savedFile) => {
+          console.log(fileSaveErr);
           if (fileSaveErr) {
             removeFileFromS3(
               uploadFileObj.uniqFileName,
