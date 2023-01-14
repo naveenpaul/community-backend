@@ -8,6 +8,9 @@ AWS.config.update({
   region: process.env.AWS_REGION,
 });
 
+const posts = require("../models/Posts");
+const Events = require("../models/Events");
+
 const commonUtility = require("../common/commonUtility");
 const common = new commonUtility();
 const s3 = new AWS.S3();
@@ -29,9 +32,6 @@ Files.prototype.uploadFileCloud = (filePath, uploadFileObj, res) => {
           return common.sendErrorResponse(res, "Error in upload file to S3");
         }
 
-        console.log(uploadedFile);
-        console.log(uploadFileObj);
-
         uploadFileObj.location =
           "https://dev-oasis-project-files.s3.ap-south-1.amazonaws.com/" +
           uploadFileObj.uniqFileName;
@@ -39,7 +39,6 @@ Files.prototype.uploadFileCloud = (filePath, uploadFileObj, res) => {
         const newFlile = new FilesModel(uploadFileObj);
 
         newFlile.save((fileSaveErr, savedFile) => {
-          console.log(fileSaveErr);
           if (fileSaveErr) {
             removeFileFromS3(
               uploadFileObj.uniqFileName,
@@ -48,6 +47,20 @@ Files.prototype.uploadFileCloud = (filePath, uploadFileObj, res) => {
             return common.sendErrorResponse(
               res,
               "Error in saving file entry to db"
+            );
+          }
+
+          if (uploadFileObj.source == "POST") {
+            posts.updateOne(
+              { sourceId: uploadFileObj.sourceId },
+              { $set: { thumbnail: uploadFileObj.location } }
+            );
+          }
+
+          if (uploadFileObj.source == "EVENT") {
+            Events.updateOne(
+              { sourceId: uploadFileObj.sourceId },
+              { $set: { thumbnail: uploadFileObj.location } }
             );
           }
 
