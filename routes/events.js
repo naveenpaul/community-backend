@@ -160,19 +160,7 @@ function handleAddComments(req, res) {
 }
 
 function handleRemoveLike(req, res) {
-  const userId = common.getUserId(req) || "";
-
-  userController.findUserByUserId(
-    common.castToObjectId(userId),
-    { emailId: 1 },
-    (err, existingUser) => {
-      if (err || !existingUser) {
-        return common.sendErrorResponse(res, "Error getting user details");
-      }
-
-      eventController.removeLike(req, res, existingUser.emailId);
-    }
-  );
+  eventController.removeLike(req, res);
 }
 function handleRemoveComment(req, res) {
   const userId = common.getUserId(req) || "";

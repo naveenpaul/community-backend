@@ -115,12 +115,12 @@ Post.prototype.getPostById = async (req, res, user) => {
   }
 };
 
-Post.prototype.updatePost = (req, res, emailId) => {
+Post.prototype.updatePost = (req, res) => {
   const cId = common.castToObjectId(req.body.cId);
   const id = common.castToObjectId(req.body.postId);
 
   community.findOne(
-    { _id: cId, "staff.emailId": emailId },
+    { _id: cId, "staff._id": common.getUserId(req) },
     (communityErr, existingcomm) => {
       if (communityErr || !existingcomm) {
         return common.sendErrorResponse(
@@ -133,10 +133,8 @@ Post.prototype.updatePost = (req, res, emailId) => {
         {
           $set: {
             updatedAt: req.body.updatedAt,
-            cId: req.body.cId,
-            cName: req.body.cName,
             name: req.body.name,
-            type: req.body.type,
+            text: req.body.text,
           },
         },
         (Err, updated) => {
@@ -220,40 +218,21 @@ Post.prototype.addComment = (req, res, user) => {
   );
 };
 
-Post.prototype.removeLike = (req, res, emailId) => {
-  const cId = common.castToObjectId(req.body.cId);
-  const id = common.castToObjectId(req.body.postId);
-  req.body.sourceId = req.body.postId;
-
-  community.findOne(
-    { _id: cId, "staff.emailId": emailId },
-    (communityErr, existingcomm) => {
-      if (communityErr || !existingcomm) {
-        return common.sendErrorResponse(
-          res,
-          "You don't have access to specified community"
-        );
+Post.prototype.removeLike = (req, res) => {
+  posts.updateOne(
+    { _id: common.castToObjectId(req.body.sourceId) },
+    {
+      $inc: { likesCount: -1 },
+    },
+    (Err, updated) => {
+      if (Err || !updated) {
+        return common.sendErrorResponse(res, "Error in updating");
       }
-      posts.updateOne(
-        { _id: id },
-        {
-          $inc: { likesCount: -1 },
-        },
-        (Err, updated) => {
-          if (Err || !updated) {
-            return common.sendErrorResponse(res, "Error in updating");
-          }
-          likeController.removeLike(req, res, (Err, removed) => {
-            if (Err || !removed) {
-              return common.sendErrorResponse(
-                res,
-                "Error in removing the Like"
-              );
-            }
-            // return res.send({ msg: "successfully removed like" });
-          });
+      likeController.removeLike(req, res, (Err, removed) => {
+        if (Err || !removed) {
+          return common.sendErrorResponse(res, "Error in removing the Like");
         }
-      );
+      });
     }
   );
 };

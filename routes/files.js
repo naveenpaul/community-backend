@@ -36,7 +36,7 @@ function handleFileUpload(req, res) {
   const uploadFile = files[0];
   const uploadObj = {
     source: req.body.source,
-    sourceId: common.isObjectId(req.body.sourceId),
+    sourceId: common.castToObjectId(req.body.sourceId),
     type: filesController.extractTypeFromMimeType(uploadFile.mimetype),
     fileName: uploadFile.fieldname,
     uniqFileName: uploadFile.originalname,

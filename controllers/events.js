@@ -284,41 +284,21 @@ Event.prototype.addComment = (req, res, user) => {
   );
 };
 
-Event.prototype.removeLike = (req, res, emailId) => {
-  const cId = common.castToObjectId(req.body.cId);
-  const id = common.castToObjectId(req.body.eventId);
-  req.body.sourceId = req.body.eventId;
-
-  community.findOne(
-    { _id: cId, "staff.emailId": emailId },
-    (communityErr, existingcomm) => {
-      if (communityErr || !existingcomm) {
-        return common.sendErrorResponse(
-          res,
-          "You don't have access to specified community"
-        );
+Event.prototype.removeLike = (req, res) => {
+  Events.updateOne(
+    { _id: common.castToObjectId(req.body.sourceId) },
+    {
+      $inc: { likesCount: -1 },
+    },
+    (Err, updated) => {
+      if (Err || !updated) {
+        return common.sendErrorResponse(res, "Error in updating");
       }
-
-      Events.updateOne(
-        { _id: id },
-        {
-          $inc: { likesCount: -1 },
-        },
-        (Err, updated) => {
-          if (Err || !updated) {
-            return common.sendErrorResponse(res, "Error in updating");
-          }
-          likeController.removeLike(req, res, (Err, removed) => {
-            if (Err || !removed) {
-              return common.sendErrorResponse(
-                res,
-                "Error in removing the Like"
-              );
-            }
-            // return res.send({ msg: "successfully removed like" });
-          });
+      likeController.removeLike(req, res, (Err, removed) => {
+        if (Err || !removed) {
+          return common.sendErrorResponse(res, "Error in removing the Like");
         }
-      );
+      });
     }
   );
 };

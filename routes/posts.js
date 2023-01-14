@@ -97,19 +97,7 @@ function handleGetPostById(req, res) {
 }
 
 function handleUpdatePosts(req, res) {
-  const userId = common.getUserId(req) || "";
-
-  userController.findUserByUserId(
-    common.castToObjectId(userId),
-    { emailId: 1 },
-    (err, existingUser) => {
-      if (err || !existingUser) {
-        return common.sendErrorResponse(res, "Error getting user details");
-      }
-
-      postController.updatePost(req, res, existingUser.emailId);
-    }
-  );
+  postController.updatePost(req, res);
 }
 function handleRemovePost(req, res) {
   const userId = common.getUserId(req) || "";
@@ -155,19 +143,7 @@ function handleAddComments(req, res) {
 }
 
 function handleRemoveLike(req, res) {
-  const userId = common.getUserId(req) || "";
-
-  userController.findUserByUserId(
-    common.castToObjectId(userId),
-    { emailId: 1 },
-    (err, existingUser) => {
-      if (err || !existingUser) {
-        return common.sendErrorResponse(res, "Error getting user details");
-      }
-
-      postController.removeLike(req, res, existingUser.emailId);
-    }
-  );
+  postController.removeLike(req, res);
 }
 function handleRemoveComment(req, res) {
   const userId = common.getUserId(req) || "";
