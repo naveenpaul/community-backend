@@ -12,7 +12,7 @@ const activityLogController = new activityLog();
 
 Router.post("/community/add", common.authorizeUser, handleAddCommunity);
 Router.post("/community/get/all", common.authorizeUser, handleGetcommunities);
-Router.post(
+Router.get(
   "/community/:communityId",
   common.authorizeUser,
   handleGetCommunityById
@@ -74,16 +74,7 @@ function handleGetcommunities(req, res) {
 }
 
 function handleGetCommunityById(req, res) {
-  userController.findUserByUserId(
-    common.castToObjectId(userId),
-    { _id: 1, emailId: 1 },
-    (err, existingUser) => {
-      if (err || !existingUser) {
-        return common.sendErrorResponse(res, "Error getting user details");
-      }
-      communityController.getAllCommunity(req, res, existingUser._id);
-    }
-  );
+  communityController.getCommunityById(req, res);
 }
 
 function handleUpdatecommunity(req, res) {
@@ -118,17 +109,19 @@ function handleRemovecommunity(req, res) {
 }
 
 function handleAddStaff(req, res) {
-  const userId = common.getUserId(req) || "";
-
-  userController.findUserByUserId(
-    common.castToObjectId(userId),
-    { emailId: 1 },
+  userController.findUserByQuery(
+    {
+      $or: [
+        { emailId: req.body.emailId },
+        { mobileNumber: req.body.mobileNumber },
+      ],
+    },
     (err, existingUser) => {
       if (err || !existingUser) {
         return common.sendErrorResponse(res, "Error getting user details");
       }
 
-      communityController.addStaff(req, res, existingUser._id);
+      communityController.addStaff(req, res, existingUser);
     }
   );
 }
