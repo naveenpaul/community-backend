@@ -60,20 +60,15 @@ Community.prototype.getAllCommunity = (req, res, userId) => {
     });
 };
 
-Community.prototype.getCommunityById = async (req, res) => {
-  const communityId = req.params.communityId;
-  const filterQuery = { _id: communityId };
-  try {
-    const comm = await community.findOne(filterQuery).exec();
-    if (!comm) Promise.reject();
-
-    return res.send({
-      community: comm,
-      msg: "Successfully fetched community",
+Community.prototype.getCommunityById = (req, res) => {
+  community
+    .findOne({ _id: common.castToObjectId(req.params.communityId) })
+    .exec((err, data) => {
+      return res.send({
+        data: data,
+        msg: "Successfully fetched community",
+      });
     });
-  } catch (err) {
-    return common.sendErrorResponse(res, "Error getting Community");
-  }
 };
 
 Community.prototype.updateCommunity = (req, res, id) => {
@@ -152,18 +147,12 @@ Community.prototype.removeCommunity = (req, res, id) => {
   );
 };
 
-Community.prototype.addStaff = (req, res, id) => {
-  const cId = common.castToObjectId(req.body.cId);
-  const staff = {
-    firstName: req.body.firstName,
-    lastName: req.body.lastName,
-    emailId: req.body.emailId,
-    mobileNumber: req.body.mobileNumber,
-    profilePicUrl: req.body.profilePicUrl,
-    role: req.body.role,
-  };
+Community.prototype.addStaff = (req, res, user) => {
   community.findOne(
-    { _id: cId, "staff._id": id, "staff.role": "ADMIN" },
+    {
+      _id: common.castToObjectId(req.body.cId),
+      "staff._id": common.castToObjectId(common.getUserId(req)),
+    },
     (communityErr, existingcomm) => {
       if (communityErr || !existingcomm) {
         return common.sendErrorResponse(
@@ -173,8 +162,8 @@ Community.prototype.addStaff = (req, res, id) => {
       }
 
       community.updateOne(
-        { _id: cId },
-        { $push: { staff: staff } },
+        { _id: common.castToObjectId(req.body.cId) },
+        { $push: { staff: user } },
         (updateErr, updateComm) => {
           if (updateErr || !updateComm) {
             return common.sendErrorResponse(res, "Failed to add sfaff");
