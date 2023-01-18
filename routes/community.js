@@ -116,6 +116,7 @@ function handleAddStaff(req, res) {
         { mobileNumber: req.body.mobileNumber },
       ],
     },
+    {},
     (err, existingUser) => {
       if (err || !existingUser) {
         return common.sendErrorResponse(res, "Error getting user details");
