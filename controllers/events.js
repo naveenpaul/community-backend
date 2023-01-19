@@ -96,11 +96,11 @@ Event.prototype.getEventsFeed = (req, res, user) => {
 
 Event.prototype.getEventById = async (req, res, user) => {
   const filterQuery = {
-    _id: req.params.postId,
+    _id: common.castToObjectId(req.params.eventId),
   };
   const projection = {};
   try {
-    const existingEvent = await Events.findOne(filterQuery, projection).exeec();
+    const existingEvent = await Events.findOne(filterQuery, projection).exec();
 
     if (!existingEvent) Promise.reject();
 
@@ -109,6 +109,7 @@ Event.prototype.getEventById = async (req, res, user) => {
       msg: "Successfully got the event",
     });
   } catch (err) {
+    console.log(err.toString());
     return common.sendErrorResponse(res, "Error in getting event");
   }
 };
