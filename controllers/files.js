@@ -50,9 +50,10 @@ Files.prototype.uploadFileCloud = (filePath, uploadFileObj, res) => {
             );
           }
 
+            // console.log(savedeFile);
           if (uploadFileObj.source == "POST") {
             posts.updateOne(
-              { _id: common.castToObjectId(uploadFileObj.sourceId) },
+              { _id: uploadFileObj.sourceId },
               { $push: { thumbnail: uploadFileObj.location } }
             );
           }

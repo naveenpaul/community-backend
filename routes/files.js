@@ -49,7 +49,7 @@ function handleFileUpload(req, res) {
             return common.sendErrorResponse(res, "Error in adding the Post");
           }
            sourceId=saved["_id"];
-           console.log(common.isObjectId(sourceId));
+          //  console.log(common.isObjectId(sourceId));
           // console.log(sourceId);
           // console.log(req.body.source);
           const uploadFile = files[0];
