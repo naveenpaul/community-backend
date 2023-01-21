@@ -52,8 +52,8 @@ Files.prototype.uploadFileCloud = (filePath, uploadFileObj, res) => {
 
           if (uploadFileObj.source == "POST") {
             posts.updateOne(
-              { sourceId: uploadFileObj.sourceId },
-              { $set: { thumbnail: uploadFileObj.location } }
+              { _id: common.castToObjectId(uploadFileObj.sourceId) },
+              { $push: { thumbnail: uploadFileObj.location } }
             );
           }
 
