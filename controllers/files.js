@@ -17,7 +17,7 @@ const s3 = new AWS.S3();
 
 function Files() {}
 
-Files.prototype.uploadFileCloud = (filePath, uploadFileObj, res) => {
+Files.prototype.uploadFileCloud = (filePath, uploadFileObj, res, callback) => {
   fs.readFile(filePath, (fileReadErr, fileData) => {
     if (fileReadErr) {
       return common.sendErrorResponse(res, "Error in uploading file");
@@ -44,33 +44,74 @@ Files.prototype.uploadFileCloud = (filePath, uploadFileObj, res) => {
               uploadFileObj.uniqFileName,
               (removeFileS3Err, removedFileS3) => {}
             );
-            return common.sendErrorResponse(
-              res,
-              "Error in saving file entry to db"
-            );
+
+            if (callback) {
+              callback(removeFileS3Err, removeFileS3Err);
+            } else {
+              return common.sendErrorResponse(
+                res,
+                "Error in saving file entry to db"
+              );
+            }
           }
 
-            // console.log(savedeFile);
+          console.log(uploadFileObj);
+
           if (uploadFileObj.source == "POST") {
-            posts.updateOne(
-              { _id: uploadFileObj.sourceId },
-              { $push: { thumbnail: uploadFileObj.location } }
-            );
+            posts
+              .updateOne(
+                { _id: common.castToObjectId(String(uploadFileObj.sourceId)) },
+                {
+                  $push: {
+                    thumbnail: {
+                      url: savedFile.location,
+                      sourceId: savedFile._id,
+                    },
+                  },
+                }
+              )
+              .exec(function (err, results) {
+                removeFileFromStorage(filePath);
+                if (callback) {
+                  callback(null, {
+                    msg: "Successfully saved file",
+                    file: savedFile,
+                  });
+                } else {
+                  return res.send({
+                    msg: "Successfully saved file",
+                    file: savedFile,
+                  });
+                }
+              });
           }
 
           if (uploadFileObj.source == "EVENT") {
             Events.updateOne(
-              { sourceId: uploadFileObj.sourceId },
-              { $set: { thumbnail: uploadFileObj.location } }
-            );
+              { _id: common.castToObjectId(String(uploadFileObj.sourceId)) },
+              {
+                $push: {
+                  thumbnail: {
+                    url: savedFile.location,
+                    sourceId: savedFile._id,
+                  },
+                },
+              }
+            ).exec(function (err, results) {
+              removeFileFromStorage(filePath);
+              if (callback) {
+                callback(null, {
+                  msg: "Successfully saved file",
+                  file: savedFile,
+                });
+              } else {
+                return res.send({
+                  msg: "Successfully saved file",
+                  file: savedFile,
+                });
+              }
+            });
           }
-
-          removeFileFromStorage(filePath);
-
-          return res.send({
-            msg: "Successfully saved file",
-            file: savedFile,
-          });
         });
       }
     );

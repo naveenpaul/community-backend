@@ -3,13 +3,22 @@ const router = express.Router();
 const commonUtility = require("../common/commonUtility");
 const files = require("../controllers/files");
 const userControl = require("../controllers/user");
+const community = require("../controllers/community");
 const Post = require("../controllers/posts");
 const common = new commonUtility();
 const filesController = new files();
 const postController = new Post();
 const userController = new userControl();
+const communityController = new community();
+
+const async = require("async");
 
 router.post("/file/upload", common.authorizeUser, handleFileUpload);
+router.post(
+  "/file/upload/post/event",
+  common.authorizeUser,
+  handleFileUploadPostEvent
+);
 router.post("/file/list/source", common.authorizeUser, handleFileListBySource);
 router.get("/file/from/s3/:fileId", common.authorizeUser, handleGetFileFromS3);
 router.post("/file/by/name", common.authorizeUser, handleGetFileByUniqName);
@@ -28,59 +37,83 @@ router.get("/file/download/:uniqFileName", handleDownloadtFileByUniqName);
 
 function handleFileUpload(req, res) {
   const files = req.files || [];
-  var sourceId=req.body.sourceId || '';
-  const userId=common.getUserId(req);
+  const userId = common.getUserId(req);
   if (files.length == 0) {
-    return common.sendErrorResponse(res, "No file uploaded");
+    return common.sendErrorResponse(res, "No file found");
   }
-
-  //if adding post
-  if (!req.body.sourceId && req.body.source=="POST") {
-    // console.log("inside the  adding post")
-    userController.findUserByUserId(
-      common.castToObjectId(userId),
-      { _id: 0 },
-      (err, existingUser) => {
-        if (err || !existingUser) {
-          return common.sendErrorResponse(res, "Error getting User Details");
-        }
-        postController.addPost(req, res, existingUser, (Err, saved) => {
-          if (Err || !saved) {
-            return common.sendErrorResponse(res, "Error in adding the Post");
-          }
-           sourceId=saved["_id"];
-          //  console.log(common.isObjectId(sourceId));
-          // console.log(sourceId);
-          // console.log(req.body.source);
-          const uploadFile = files[0];
-          const uploadObj = {
-                source: req.body.source,
-                sourceId: sourceId,
-                type: filesController.extractTypeFromMimeType(uploadFile.mimetype),
-                fileName: uploadFile.fieldname,
-                uniqFileName: uploadFile.originalname,
-                tag: req.body.tag ? JSON.parse(req.body.tag) : {},
-                };
-
-                filesController.uploadFileCloud(uploadFile.path, uploadObj, res);
-               
-        });
-  });
-}
- else{ 
-  if(!req.body.sourceId)
-  {return common.sendErrorResponse(res, "Enter valid source Id");}
   const uploadFile = files[0];
   const uploadObj = {
     source: req.body.source,
-    sourceId: common.castToObjectId(sourceId),
+    sourceId: common.isObjectId(req.body.sourceId),
     type: filesController.extractTypeFromMimeType(uploadFile.mimetype),
     fileName: uploadFile.fieldname,
     uniqFileName: uploadFile.originalname,
     tag: req.body.tag ? JSON.parse(req.body.tag) : {},
   };
 
-  filesController.uploadFileCloud(uploadFile.path, uploadObj, res);}
+  filesController.uploadFileCloud(uploadFile.path, uploadObj, res);
+}
+
+function handleFileUploadPostEvent(req, res) {
+  const files = req.files || [];
+  const userId = common.getUserId(req);
+  if (files.length == 0) {
+    return common.sendErrorResponse(res, "No files found");
+  }
+
+  userController.findUserByUserId(
+    common.castToObjectId(userId),
+    { _id: 0 },
+    (err, existingUser) => {
+      if (err || !existingUser) {
+        return common.sendErrorResponse(res, "Error getting User Details");
+      }
+      req.params.communityId = req.query.cId;
+      communityController.getCommunityById(
+        req,
+        res,
+        function (errC, community) {
+          req.body = req.query;
+          req.body.cId = community._id;
+          req.body.cName = community.name;
+          postController.addPost(req, res, existingUser, (Err, post) => {
+            if (Err || !post) {
+              return common.sendErrorResponse(res, "Error in adding the Post");
+            }
+            async.each(
+              files,
+              function (file, callback) {
+                const uploadObj = {
+                  source: req.body.source,
+                  sourceId: post._id,
+                  type: filesController.extractTypeFromMimeType(file.mimetype),
+                  fileName: file.originalname,
+                  uniqFileName: file.originalname,
+                  tag: req.body.tag ? JSON.parse(req.body.tag) : {},
+                };
+
+                filesController.uploadFileCloud(
+                  file.path,
+                  uploadObj,
+                  res,
+                  callback
+                );
+              },
+              function (err, results) {
+                req.params.postId = post._id;
+                postController.getPostById(req, res, function (err, newPost) {
+                  return res.send({
+                    msg: "Successfully saved file",
+                    data: newPost,
+                  });
+                });
+              }
+            );
+          });
+        }
+      );
+    }
+  );
 }
 
 function handleFileListBySource(req, res) {

@@ -60,14 +60,18 @@ Community.prototype.getAllCommunity = (req, res, userId) => {
     });
 };
 
-Community.prototype.getCommunityById = (req, res) => {
+Community.prototype.getCommunityById = (req, res, callback) => {
   community
     .findOne({ _id: common.castToObjectId(req.params.communityId) })
     .exec((err, data) => {
-      return res.send({
-        data: data,
-        msg: "Successfully fetched community",
-      });
+      if (callback) {
+        callback(err, data);
+      } else {
+        return res.send({
+          data: data,
+          msg: "Successfully fetched community",
+        });
+      }
     });
 };
 
