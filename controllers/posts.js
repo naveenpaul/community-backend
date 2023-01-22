@@ -26,7 +26,7 @@ Post.prototype.addPost = (req, res, user, callback) => {
     name: req.body.name,
     type: req.body.type,
     text: req.body.text || "",
-    thumbnail: req.body.thumbnail || "",
+    // thumbnail: req.body.thumbnail || "",
     userId: common.getUserId(req),
     poll: poll,
     likesCount: 0,
