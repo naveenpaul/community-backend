@@ -39,6 +39,8 @@ Files.prototype.uploadFileCloud = (filePath, uploadFileObj, res, callback) => {
         const newFlile = new FilesModel(uploadFileObj);
 
         newFlile.save((fileSaveErr, savedFile) => {
+          console.log(uploadFileObj);
+          console.log(fileSaveErr);
           if (fileSaveErr) {
             removeFileFromS3(
               uploadFileObj.uniqFileName,
@@ -54,8 +56,6 @@ Files.prototype.uploadFileCloud = (filePath, uploadFileObj, res, callback) => {
               );
             }
           }
-
-          console.log(uploadFileObj);
 
           if (uploadFileObj.source == "POST") {
             posts
@@ -84,9 +84,7 @@ Files.prototype.uploadFileCloud = (filePath, uploadFileObj, res, callback) => {
                   });
                 }
               });
-          }
-
-          if (uploadFileObj.source == "EVENT") {
+          } else if (uploadFileObj.source == "EVENT") {
             Events.updateOne(
               { _id: common.castToObjectId(String(uploadFileObj.sourceId)) },
               {
@@ -110,6 +108,11 @@ Files.prototype.uploadFileCloud = (filePath, uploadFileObj, res, callback) => {
                   file: savedFile,
                 });
               }
+            });
+          } else {
+            return res.send({
+              msg: "Successfully saved file",
+              file: savedFile,
             });
           }
         });

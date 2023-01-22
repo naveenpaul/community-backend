@@ -37,18 +37,17 @@ router.get("/file/download/:uniqFileName", handleDownloadtFileByUniqName);
 
 function handleFileUpload(req, res) {
   const files = req.files || [];
-  const userId = common.getUserId(req);
   if (files.length == 0) {
     return common.sendErrorResponse(res, "No file found");
   }
   const uploadFile = files[0];
   const uploadObj = {
-    source: req.body.source,
-    sourceId: common.isObjectId(req.body.sourceId),
+    source: req.query.source,
+    sourceId: common.castToObjectId(req.query.sourceId),
     type: filesController.extractTypeFromMimeType(uploadFile.mimetype),
-    fileName: uploadFile.fieldname,
+    fileName: uploadFile.originalname,
     uniqFileName: uploadFile.originalname,
-    tag: req.body.tag ? JSON.parse(req.body.tag) : {},
+    tag: req.query.tag ? JSON.parse(req.query.tag) : {},
   };
 
   filesController.uploadFileCloud(uploadFile.path, uploadObj, res);
