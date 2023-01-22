@@ -26,7 +26,7 @@ Post.prototype.addPost = (req, res, user, callback) => {
     name: req.body.name,
     type: req.body.type,
     text: req.body.text || "",
-    // thumbnail: req.body.thumbnail || "",
+    thumbnail: [],
     userId: common.getUserId(req),
     poll: poll,
     likesCount: 0,
@@ -92,7 +92,7 @@ Post.prototype.getPostsFeed = (req, res, user) => {
     });
 };
 
-Post.prototype.getPostById = async (req, res, user) => {
+Post.prototype.getPostById = async (req, res, callback) => {
   const filterQuery = {
     _id: common.castToObjectId(req.params.postId),
   };
@@ -106,10 +106,14 @@ Post.prototype.getPostById = async (req, res, user) => {
     post.userName = "";
     post.communityLogo = 88;
 
-    res.send({
-      post: post,
-      msg: "Successfully got the post",
-    });
+    if (callback) {
+      callback(null, post);
+    } else {
+      res.send({
+        post: post,
+        msg: "Successfully got the post",
+      });
+    }
   } catch (err) {
     return common.sendErrorResponse(res, "Error in getting post");
   }

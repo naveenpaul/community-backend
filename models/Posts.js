@@ -7,7 +7,7 @@ const postsSchema = new mongoose.Schema(
     cName: String,
     name: String,
     text: String,
-    thumbnail: [String],
+    thumbnail: [],
     poll: [
       {
         option: String,
