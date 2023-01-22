@@ -44,6 +44,7 @@ function handleAddPosts(req, res) {
           return common.sendErrorResponse(res, "Error in adding the Post");
         }
         res.send({
+          // post:saved,
           msg: "Added Post Successfully",
         });
       });
