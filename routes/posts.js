@@ -92,7 +92,15 @@ function handleGetPostById(req, res) {
       if (err || !existingUser) {
         return common.sendErrorResponse(res, "Error getting user details");
       }
-      postController.getPostById(req, res, existingUser);
+      postController.getPostById(req, res,(err,post)=>{
+        if(err || !post){
+          return common.sendErrorResponse(res, "Error in getting post");
+        }
+        res.send({
+        post: post,
+        msg: "Successfully got the post",
+      });
+      } );
     }
   );
 }
