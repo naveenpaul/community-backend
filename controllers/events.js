@@ -131,7 +131,7 @@ Event.prototype.updateEvent = (req, res, emailId) => {
         { _id: id },
         {
           $set: {
-            updatedAt: req.body.updatedAt,
+            updatedAt: Date.now(),
             name: req.body.name,
             description: req.body.description,
             location: {
