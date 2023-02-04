@@ -39,8 +39,8 @@ Files.prototype.uploadFileCloud = (filePath, uploadFileObj, res, callback) => {
         const newFlile = new FilesModel(uploadFileObj);
 
         newFlile.save((fileSaveErr, savedFile) => {
-          console.log(uploadFileObj);
-          console.log(fileSaveErr);
+          // console.log(uploadFileObj);
+          // console.log(fileSaveErr);
           if (fileSaveErr) {
             removeFileFromS3(
               uploadFileObj.uniqFileName,
@@ -169,19 +169,21 @@ Files.prototype.getFileByUniqName = (uniqFileName, res) => {
   });
 };
 
-Files.prototype.deleteFileFromCloud = (fileId, res) => {
+Files.prototype.deleteFileFromCloud = (fileId, res,callback) => {
   fileId = common.castToObjectId(fileId);
-
+  console.log(fileId);
   FilesModel.findOne(
     { _id: fileId },
-    { uniqFileName: 1 },
     (fileByIdErr, fileById) => {
-      if (fileByIdErr || (fileById && !fileById.uniqFileName)) {
+      if (fileByIdErr || (fileById && !fileById.fileName)) {
+        console.log(fileByIdErr);
+        console.log(fileById);
         return common.sendErrorResponse(res, "Error in getting file details");
       }
-
-      removeFileFromS3(fileById.uniqFileName, (fileFromS3Err, fileFromS3) => {
+      console.log(fileById.fileName);
+      removeFileFromS3(fileById.fileName, (fileFromS3Err, fileFromS3) => {
         if (fileFromS3Err) {
+          console.log(fileFromS3Err)
           return common.sendErrorResponse(
             res,
             "Error in deleting file from S3"
@@ -195,10 +197,13 @@ Files.prototype.deleteFileFromCloud = (fileId, res) => {
               "Error in removing file details"
             );
           }
-
-          return res.send({
+          if(callback){
+            callback({msg:"deleted file"});
+          }
+          else{
+            return res.send({
             msg: "Successfully deleted file from S3",
-          });
+          });}
         });
       });
     }

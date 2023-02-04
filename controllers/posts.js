@@ -119,10 +119,14 @@ Post.prototype.getPostById = async (req, res, callback) => {
   }
 };
 
-Post.prototype.updatePost = (req, res) => {
+Post.prototype.updatePost = (req, res, callback) => {
   const cId = common.castToObjectId(req.body.cId);
   const id = common.castToObjectId(req.body.postId);
-
+  let poll = req.body.poll
+  ? req.body.poll.map(function (element) {
+      return { option: element, userId: [] };
+    })
+  : [];
   community.findOne(
     { _id: cId, "staff._id": common.getUserId(req) },
     (communityErr, existingcomm) => {
@@ -136,23 +140,29 @@ Post.prototype.updatePost = (req, res) => {
         { _id: id },
         {
           $set: {
-            updatedAt: req.body.updatedAt,
-            name: req.body.name,
-            text: req.body.text,
-          },
-        },
-        (Err, updated) => {
-          if (Err || !updated) {
-            return common.sendErrorResponse(res, "Error in updating the POst");
-          }
-
-          return res.send({ msg: "Updated the post" });
-        }
-      );
+            updatedAt: Date.now(),
+              cId: req.body.cId,
+              cName: req.body.cName,
+              name: req.body.name,
+              type: req.body.type,
+              text: req.body.text || "",
+              thumbnail: req.body.type=="VIDEO" ? [{url:req.body.thumbnail }]:[],
+              poll: poll,        
+            },
+        }).exec((err,updated)=>
+          callback(err,updated)
+        );
     }
   );
 };
-
+Post.prototype.removeImage = (postId,fileId, res, callback) =>{
+   post.updateOne(
+    {_id:postId},
+    {
+      $pull:{ thumbnail:{sourceId:fileId}}
+    }
+   ).exec();
+}
 Post.prototype.removePost = (req, res, emailId) => {
   const cId = common.castToObjectId(req.body.cId);
   const id = common.castToObjectId(req.body.postId);

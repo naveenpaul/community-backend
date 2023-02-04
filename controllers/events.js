@@ -5,6 +5,7 @@ const community = require("../models/community");
 const commonUtility = require("../common/commonUtility");
 const common = new commonUtility();
 const _ = require("lodash");
+const { event } = require("jquery");
 
 const likeController = new like();
 const commentController = new comment();
@@ -344,5 +345,13 @@ Event.prototype.removeComment = (req, res, emailId) => {
     }
   );
 };
+Event.prototype.removeImage = (eventId,fileId, res, callback) =>{
+Events.updateOne(
+   {_id:eventId},
+   {
+     $pull:{ thumbnail:{sourceId:fileId}}
+   }
+  ).exec();
+}
 
 module.exports = Event;
