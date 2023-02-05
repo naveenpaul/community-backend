@@ -184,11 +184,7 @@ function handleFileUpdatePost(req,res){
   const files = req.files || [];
   const deletedFiles= req.body.deleted || [];
   const userId = common.getUserId(req);
-  // console.log(deletedFiles[0]);
-  // console.log(common.castToObjectId(req.query.));
-  // if (files.length == 0) {
-  //   return common.sendErrorResponse(res, "No files found");
-  // }
+  console.log(files.length);
 
   userController.findUserByUserId(
     common.castToObjectId(userId),
@@ -203,24 +199,21 @@ function handleFileUpdatePost(req,res){
           if (communityErr || !existingcomm) {
             return common.sendErrorResponse(
               res,
-              "You don't have access to specified community"
+              "You don't have access to specified community 1"
             );
           }
           //delete files
           async.each(
             deletedFiles,
             function (deletedFile,callback){
-              filesController.deleteFileFromCloud(deletedFile, res,(msg)=>{
-                console.log("deleted file");
-                postController.removeImage(common.castToObjectId(req.params.sourceId),common.castToObjectId(deletedFile),res,callback);
-                
-              });
-            }, function (err){
+            postController.removeImage(common.castToObjectId(req.query.sourceId),common.castToObjectId(deletedFile),res,callback);
+            }, function (err,){
               if( err ) {
                 console.log("Error in deleting Files");
             } 
-            console.log("file uploading...")
+           
             //upload new files
+            console.log("Deleted Files")
             async.each(
               files,
               function (file, callback) {
@@ -232,7 +225,7 @@ function handleFileUpdatePost(req,res){
                   uniqFileName: file.originalname,
                   tag: req.body.tag ? JSON.parse(req.body.tag) : {},
                 };
-      
+                console.log("file uploading...")
                 filesController.uploadFileCloud(
                   file.path,
                   uploadObj,
@@ -241,12 +234,27 @@ function handleFileUpdatePost(req,res){
                 );
               },
               function (err, results) {
+                //update the post
                 if(err)console.log("Error while uploading files");
-                eventController.updateEvent(req, res, existingUser.emailId);
+                req.body=req.query;
+                req.body.postId=req.query.sourceId;
+                req.body.cId=req.query.cId;
+                postController.updatePost(req,res,(err,updatedPost) =>{
+                    if(err || !updatedPost){
+                      return common.sendErrorResponse(res,"Error while updating post");
+                    }
+                    return res.send({
+                      msg: "Successfully Updated Post",
+                    });
+                })
+               
+               
               }
             );
             }
           );
+          
+         
         }
       );   
     }
@@ -257,11 +265,7 @@ function handleFileUpdateEvent(req,res){
   const files = req.files || [];
   const deletedFiles= req.body.deleted || [];
   const userId = common.getUserId(req);
-  // console.log(deletedFiles[0]);
-  // console.log(common.castToObjectId(req.query.));
-  // if (files.length == 0) {
-  //   return common.sendErrorResponse(res, "No files found");
-  // }
+  console.log(files.length);
 
   userController.findUserByUserId(
     common.castToObjectId(userId),
@@ -271,39 +275,37 @@ function handleFileUpdateEvent(req,res){
         return common.sendErrorResponse(res, "Error getting User Details");
       }
       communityModel.findOne(
-        { _id: common.castToObjectId(req.body.cId) , "staff._id": common.castToObjectId(userId) },
+        { _id: common.castToObjectId(req.query.cId) , "staff._id": common.castToObjectId(userId) },
         (communityErr, existingcomm) => {
           if (communityErr || !existingcomm) {
             return common.sendErrorResponse(
               res,
-              "You don't have access to specified community"
+              "You don't have access to specified community 1"
             );
           }
+          //delete files
           async.each(
             deletedFiles,
             function (deletedFile,callback){
-              filesController.deleteFileFromCloud(deletedFile, res,(msg)=>{
-                console.log("deleted file");
-                eventController.removeImage(castToObjectId(req.params.sourceId),castToObjectId(deletedFile),res,callback);
-                
-              });
+            postController.removeImage(common.castToObjectId(req.query.sourceId),common.castToObjectId(deletedFile),res,callback);
             }, function (err){
               if( err ) {
                 console.log("Error in deleting Files");
             } 
-            console.log("file uploading...")
+           console.log("deleted files")
+            //upload new files
             async.each(
               files,
               function (file, callback) {
                 const uploadObj = {
-                  source: "POST",
+                  source: "EVENT",
                   sourceId: common.castToObjectId(req.query.sourceId),
                   type: filesController.extractTypeFromMimeType(file.mimetype),
                   fileName: file.originalname,
                   uniqFileName: file.originalname,
                   tag: req.body.tag ? JSON.parse(req.body.tag) : {},
                 };
-      
+                console.log("file uploading...")
                 filesController.uploadFileCloud(
                   file.path,
                   uploadObj,
@@ -311,27 +313,31 @@ function handleFileUpdateEvent(req,res){
                 callback
                 );
               },
-              function (err, results) {
+              function (err) {
                 if(err)console.log("Error while uploading files");
-                 req.params.postId = req.query.sourceId;
-                 postController.getPostById(req, res, function (err, newPost) {
-                  console.log("saved file")
-                  return res.send({
-                    msg: "Successfully saved file",
-                  
-                     data: newPost,
-                  });
-                });
+                req.body=req.query;
+                req.body.eventId=req.query.sourceId;
+                req.body.cId=req.query.cId;
+                eventController.updateEvent(req,res,(err,updatedPost) =>{
+                    if(err || !updatedPost){
+                      return common.sendErrorResponse(res,"Error while updating Event");
+                    }
+                    return res.send({
+                      msg: "Successfully Updated Event",
+                    });
+                })
+               
+               
               }
             );
             }
           );
+          
         }
       );   
     }
   );
 }
-
 function handleFileListBySource(req, res) {
   const sourceId = req.body.sourceId;
   const projection = req.body.projection || {};

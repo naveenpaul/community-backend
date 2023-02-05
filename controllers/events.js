@@ -351,7 +351,7 @@ Events.updateOne(
    {
      $pull:{ thumbnail:{sourceId:fileId}}
    }
-  ).exec();
+  ).exec(callback);
 }
 
 module.exports = Event;

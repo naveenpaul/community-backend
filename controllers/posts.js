@@ -122,6 +122,7 @@ Post.prototype.getPostById = async (req, res, callback) => {
 Post.prototype.updatePost = (req, res, callback) => {
   const cId = common.castToObjectId(req.body.cId);
   const id = common.castToObjectId(req.body.postId);
+  console.log(id);
   let poll = req.body.poll
   ? req.body.poll.map(function (element) {
       return { option: element, userId: [] };
@@ -136,18 +137,21 @@ Post.prototype.updatePost = (req, res, callback) => {
           "You don't have access to specified community"
         );
       }
-      posts.updateOne(
-        { _id: id },
-        {
-          $set: {
-            updatedAt: Date.now(),
+      var newValues={
+        updatedAt: Date.now(),
               cId: req.body.cId,
               cName: req.body.cName,
               name: req.body.name,
               type: req.body.type,
               text: req.body.text || "",
-              thumbnail: req.body.type=="VIDEO" ? [{url:req.body.thumbnail }]:[],
-              poll: poll,        
+              poll: poll,    
+      }
+      if(req.body.type=="VIDEO"){newValues["thumbnail"]=[{url:req.body.thumbnail }];}
+      posts.updateOne(
+        { _id: id },
+        {
+          $set: {
+           ...newValues 
             },
         }).exec((err,updated)=>
           callback(err,updated)
@@ -156,12 +160,13 @@ Post.prototype.updatePost = (req, res, callback) => {
   );
 };
 Post.prototype.removeImage = (postId,fileId, res, callback) =>{
-   post.updateOne(
+
+   posts.updateOne(
     {_id:postId},
     {
       $pull:{ thumbnail:{sourceId:fileId}}
     }
-   ).exec();
+   ).exec(callback);
 }
 Post.prototype.removePost = (req, res, emailId) => {
   const cId = common.castToObjectId(req.body.cId);

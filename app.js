@@ -35,6 +35,7 @@ const events = require("./routes/events");
 const posts = require("./routes/posts");
 const community = require("./routes/community");
 const user = require("./routes/user");
+const report= require("./routes/reports");
 /**
  * API keys and Passport configuration.
  */
@@ -94,6 +95,7 @@ app.use("/", superadmin);
 app.use("/", events);
 app.use("/", posts);
 app.use("/", community);
+app.use("/",report);
 app.use(express.static(path.join(__dirname, "downloads")));
 
 /**
