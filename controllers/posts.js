@@ -119,10 +119,16 @@ Post.prototype.getPostById = async (req, res, callback) => {
   }
 };
 
-Post.prototype.updatePost = (req, res) => {
+Post.prototype.updatePost = (req, res, callback) => {
   const cId = common.castToObjectId(req.body.cId);
   const id = common.castToObjectId(req.body.postId);
-
+  console.log(id);
+  let poll = req.body.poll
+  //need  to change when adding votes is working
+  ? req.body.poll.map(function (element) {
+      return { option: element, userId: [] };
+    })
+  : [];
   community.findOne(
     { _id: cId, "staff._id": common.getUserId(req) },
     (communityErr, existingcomm) => {
@@ -132,27 +138,35 @@ Post.prototype.updatePost = (req, res) => {
           "You don't have access to specified community"
         );
       }
+      var newValues={
+        updatedAt: Date.now(),
+              cId: req.body.cId,
+              name: req.body.name,
+              text: req.body.text || "",
+              poll: poll,    
+      }
+      if(req.body.type=="VIDEO"){newValues["thumbnail"]=[{url:req.body.thumbnail }];}
       posts.updateOne(
         { _id: id },
         {
           $set: {
-            updatedAt: req.body.updatedAt,
-            name: req.body.name,
-            text: req.body.text,
-          },
-        },
-        (Err, updated) => {
-          if (Err || !updated) {
-            return common.sendErrorResponse(res, "Error in updating the POst");
-          }
-
-          return res.send({ msg: "Updated the post" });
-        }
-      );
+           ...newValues 
+            },
+        }).exec((err,updated)=>
+          callback(err,updated)
+        );
     }
   );
 };
+Post.prototype.removeImage = (postId,fileId, res, callback) =>{
 
+   posts.updateOne(
+    {_id:postId},
+    {
+      $pull:{ thumbnail:{sourceId:fileId}}
+    }
+   ).exec(callback);
+}
 Post.prototype.removePost = (req, res, emailId) => {
   const cId = common.castToObjectId(req.body.cId);
   const id = common.castToObjectId(req.body.postId);

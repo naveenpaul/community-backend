@@ -47,6 +47,7 @@ function handleAddEvents(req, res) {
         if (Err || !saved) {
           return common.sendErrorResponse(res, "Error in adding the Event");
         }
+        
         res.send({
           msg: "Added Event Successfully",
         });

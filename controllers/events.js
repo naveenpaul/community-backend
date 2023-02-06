@@ -5,6 +5,7 @@ const community = require("../models/community");
 const commonUtility = require("../common/commonUtility");
 const common = new commonUtility();
 const _ = require("lodash");
+const { event } = require("jquery");
 
 const likeController = new like();
 const commentController = new comment();
@@ -117,9 +118,10 @@ Event.prototype.getEventById = async (req, res, user) => {
 Event.prototype.updateEvent = (req, res, emailId) => {
   const cId = common.castToObjectId(req.body.cId);
   const id = common.castToObjectId(req.body.eventId);
+  console.log(cId);
 
   community.findOne(
-    { _id: cId, "staff.emailId": emailId },
+    { _id: cId, "staff._id": common.getUserId(req) },
     (communityErr, existingcomm) => {
       if (communityErr || !existingcomm) {
         return common.sendErrorResponse(
@@ -134,10 +136,10 @@ Event.prototype.updateEvent = (req, res, emailId) => {
             updatedAt: Date.now(),
             name: req.body.name,
             description: req.body.description,
-            location: {
-              long: req.body.location.long,
-              lat: req.body.location.lat,
-            },
+            // location: {
+            //   long: req.body.location.long,
+            //   lat: req.body.location.lat,
+            // },
             startDate: req.body.startDate,
             endDate: req.body.endDate,
             address: {
@@ -147,7 +149,6 @@ Event.prototype.updateEvent = (req, res, emailId) => {
               state: req.body.state,
               country: req.body.country,
             },
-            type: req.body.type,
           },
         },
         (Err, updated) => {
@@ -344,5 +345,13 @@ Event.prototype.removeComment = (req, res, emailId) => {
     }
   );
 };
+Event.prototype.removeImage = (eventId,fileId, res, callback) =>{
+Events.updateOne(
+   {_id:eventId},
+   {
+     $pull:{ thumbnail:{sourceId:fileId}}
+   }
+  ).exec(callback);
+}
 
 module.exports = Event;

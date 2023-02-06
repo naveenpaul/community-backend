@@ -21,7 +21,7 @@ Router.post("/posts/add/comment", common.authorizeUser, handleAddComments);
 Router.post("/posts/remove", common.authorizeUser, handleRemovePost);
 Router.post("/posts/remove/comment", common.authorizeUser, handleRemoveComment);
 Router.post("/posts/remove/like", common.authorizeUser, handleRemoveLike);
-Router.post("/posts/update", common.authorizeUser, handleUpdatePosts);
+Router.put("/posts/update", common.authorizeUser, handleUpdatePosts);
 Router.get(
   "/posts/get/all/comments/:pageNumber",
   common.authorizeUser,
@@ -106,7 +106,26 @@ function handleGetPostById(req, res) {
 }
 
 function handleUpdatePosts(req, res) {
-  postController.updatePost(req, res);
+  const userId = common.getUserId(req) || "";
+
+  userController.findUserByUserId(
+    common.castToObjectId(userId),
+    { emailId: 1 },
+    (err, existingUser) => {
+      if (err || !existingUser) {
+        return common.sendErrorResponse(res, "Error getting user details");
+      }
+
+      postController.updatePost(req, res,(Err, updated) => {
+        if (Err || !updated) {
+          return common.sendErrorResponse(res, "Error in updating the POst");
+        }
+
+        return res.send({ msg: "Updated the post" });
+      } );
+    }
+  );
+  
 }
 function handleRemovePost(req, res) {
   const userId = common.getUserId(req) || "";
@@ -154,6 +173,7 @@ function handleAddComments(req, res) {
 function handleRemoveLike(req, res) {
   postController.removeLike(req, res);
 }
+
 function handleRemoveComment(req, res) {
   const userId = common.getUserId(req) || "";
 
