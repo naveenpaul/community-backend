@@ -173,6 +173,7 @@ function handleAddComments(req, res) {
 function handleRemoveLike(req, res) {
   postController.removeLike(req, res);
 }
+
 function handleRemoveComment(req, res) {
   const userId = common.getUserId(req) || "";
 

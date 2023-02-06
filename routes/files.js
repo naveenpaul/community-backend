@@ -184,7 +184,8 @@ function handleFileUpdatePost(req,res){
   const files = req.files || [];
   const deletedFiles= req.body.deleted || [];
   const userId = common.getUserId(req);
-  console.log(files.length);
+  // console.log(files.length);
+  // console.log(deletedFiles.length);
 
   userController.findUserByUserId(
     common.castToObjectId(userId),
@@ -206,10 +207,12 @@ function handleFileUpdatePost(req,res){
           async.each(
             deletedFiles,
             function (deletedFile,callback){
+              console.log(deletedFile);
             postController.removeImage(common.castToObjectId(req.query.sourceId),common.castToObjectId(deletedFile),res,callback);
             }, function (err,){
               if( err ) {
-                console.log("Error in deleting Files");
+                // console.log("Error in deleting Files");
+                return common.sendErrorResponse(res,"Error in deleting Files");
             } 
            
             //upload new files
@@ -235,7 +238,10 @@ function handleFileUpdatePost(req,res){
               },
               function (err, results) {
                 //update the post
-                if(err)console.log("Error while uploading files");
+                if(err){
+                  // console.log("Error while uploading files");
+                  return common.sendErrorResponse(res,"Error while uploading files");
+                }
                 req.body=req.query;
                 req.body.postId=req.query.sourceId;
                 req.body.cId=req.query.cId;
@@ -265,7 +271,7 @@ function handleFileUpdateEvent(req,res){
   const files = req.files || [];
   const deletedFiles= req.body.deleted || [];
   const userId = common.getUserId(req);
-  console.log(files.length);
+  // console.log(files.length);
 
   userController.findUserByUserId(
     common.castToObjectId(userId),
@@ -287,10 +293,11 @@ function handleFileUpdateEvent(req,res){
           async.each(
             deletedFiles,
             function (deletedFile,callback){
-            postController.removeImage(common.castToObjectId(req.query.sourceId),common.castToObjectId(deletedFile),res,callback);
+            eventController.removeImage(common.castToObjectId(req.query.sourceId),common.castToObjectId(deletedFile),res,callback);
             }, function (err){
               if( err ) {
-                console.log("Error in deleting Files");
+                // console.log("Error in deleting Files");
+                return common.sendErrorResponse(res,"Error in deleting Files");
             } 
            console.log("deleted files")
             //upload new files
@@ -314,7 +321,10 @@ function handleFileUpdateEvent(req,res){
                 );
               },
               function (err) {
-                if(err)console.log("Error while uploading files");
+                if(err){
+                  // console.log("Error while uploading files");
+                  return common.sendErrorResponse(res,"Error while uploading files");
+                }
                 req.body=req.query;
                 req.body.eventId=req.query.sourceId;
                 req.body.cId=req.query.cId;

@@ -124,6 +124,7 @@ Post.prototype.updatePost = (req, res, callback) => {
   const id = common.castToObjectId(req.body.postId);
   console.log(id);
   let poll = req.body.poll
+  //need  to change when adding votes is working
   ? req.body.poll.map(function (element) {
       return { option: element, userId: [] };
     })
@@ -140,9 +141,7 @@ Post.prototype.updatePost = (req, res, callback) => {
       var newValues={
         updatedAt: Date.now(),
               cId: req.body.cId,
-              cName: req.body.cName,
               name: req.body.name,
-              type: req.body.type,
               text: req.body.text || "",
               poll: poll,    
       }

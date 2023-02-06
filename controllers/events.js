@@ -118,9 +118,10 @@ Event.prototype.getEventById = async (req, res, user) => {
 Event.prototype.updateEvent = (req, res, emailId) => {
   const cId = common.castToObjectId(req.body.cId);
   const id = common.castToObjectId(req.body.eventId);
+  console.log(cId);
 
   community.findOne(
-    { _id: cId, "staff.emailId": emailId },
+    { _id: cId, "staff._id": common.getUserId(req) },
     (communityErr, existingcomm) => {
       if (communityErr || !existingcomm) {
         return common.sendErrorResponse(
@@ -135,10 +136,10 @@ Event.prototype.updateEvent = (req, res, emailId) => {
             updatedAt: Date.now(),
             name: req.body.name,
             description: req.body.description,
-            location: {
-              long: req.body.location.long,
-              lat: req.body.location.lat,
-            },
+            // location: {
+            //   long: req.body.location.long,
+            //   lat: req.body.location.lat,
+            // },
             startDate: req.body.startDate,
             endDate: req.body.endDate,
             address: {
@@ -148,7 +149,6 @@ Event.prototype.updateEvent = (req, res, emailId) => {
               state: req.body.state,
               country: req.body.country,
             },
-            type: req.body.type,
           },
         },
         (Err, updated) => {
