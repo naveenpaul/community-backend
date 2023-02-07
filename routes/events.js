@@ -144,7 +144,7 @@ function handleAddLikes(req, res) {
         return common.sendErrorResponse(res, "Error getting user details");
       }
 
-      eventController.addLike(req, res, existingUser.emailId);
+      eventController.addLike(req, res, existingUser);
     }
   );
 }
@@ -155,13 +155,31 @@ function handleAddComments(req, res) {
     common.castToObjectId(userId),
     {},
     (err, existingUser) => {
+      if(err || !existingUser){
+        return common.sendErrorResponse(res,"Error getting user details")
+      }
       eventController.addComment(req, res, existingUser);
     }
   );
 }
 
 function handleRemoveLike(req, res) {
-  eventController.removeLike(req, res);
+  const userId = common.getUserId(req) || "";
+
+  userController.findUserByUserId(
+    common.castToObjectId(userId),
+    { emailId: 1 },
+    (err, existingUser) => {
+      if (err || !existingUser) {
+        return common.sendErrorResponse(res, "Error getting user details");
+      }
+
+      eventController.removeLike(req, res);
+    }
+  );
+
+ 
+
 }
 function handleRemoveComment(req, res) {
   const userId = common.getUserId(req) || "";
