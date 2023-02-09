@@ -226,23 +226,10 @@ Event.prototype.getAllComment = (req, res, emailId) => {
   );
 };
 
-Event.prototype.addLike = (req, res, emailId) => {
-  const cId = common.castToObjectId(req.body.cId);
-  const id = common.castToObjectId(req.body.eventId);
-  req.body.sourceId = req.body.eventId;
-
-  community.findOne(
-    { _id: cId, "staff.emailId": emailId },
-    (communityErr, existingcomm) => {
-      if (communityErr || !existingcomm) {
-        return common.sendErrorResponse(
-          res,
-          "You don't have access to specified community"
-        );
-      }
-
+Event.prototype.addLike = (req, res, user) => {
+  req.body.source = "EVENT";
       Events.updateOne(
-        { _id: id },
+        { _id:  common.castToObjectId(req.body.sourceId)},
         {
           $inc: { likesCount: 1 },
         },
@@ -253,7 +240,7 @@ Event.prototype.addLike = (req, res, emailId) => {
               "error in incrementing the count"
             );
           }
-          likeController.addLike(req, res, (Err, saved) => {
+          likeController.addLike(req, res, user,(Err, saved) => {
             if (Err || !saved) {
               return common.sendErrorResponse(res, "Error in adding the like");
             }
@@ -261,16 +248,15 @@ Event.prototype.addLike = (req, res, emailId) => {
           });
         }
       );
-    }
-  );
+  
 };
 
 Event.prototype.addComment = (req, res, user) => {
   req.body.source = "EVENT";
   Events.updateOne(
-    { _id: id },
+    { _id: common.castToObjectId(req.body.sourceId) },
     {
-      $inc: { commentsCount: 1 },
+      $inc: { commentsCount : 1 },
     },
     (Err, updated) => {
       if (Err || !updated) {
@@ -280,7 +266,10 @@ Event.prototype.addComment = (req, res, user) => {
         if (Err || !saved) {
           return common.sendErrorResponse(res, "Error in adding the comment");
         }
-        return res.send({ msg: "Successfully added the comment" });
+        return res.send({
+          msg: "Successfully added the comment",
+          comment: saved,
+        });
       });
     }
   );
@@ -300,27 +289,15 @@ Event.prototype.removeLike = (req, res) => {
         if (Err || !removed) {
           return common.sendErrorResponse(res, "Error in removing the Like");
         }
+        return res.send({ msg: "Successfully rwemoved  the like" });
       });
     }
   );
 };
 
 Event.prototype.removeComment = (req, res, emailId) => {
-  const cId = common.castToObjectId(req.body.cId);
-  const id = common.castToObjectId(req.body.eventId);
-  req.body.sourceId = req.body.eventId;
-
-  community.findOne(
-    { _id: cId, "staff.emailId": emailId },
-    (communityErr, existingcomm) => {
-      if (communityErr || !existingcomm) {
-        return common.sendErrorResponse(
-          res,
-          "You don't have access to specified community"
-        );
-      }
       Events.updateOne(
-        { _id: id },
+        { _id: common.castToObjectId(req.body.sourceId) },
         {
           $inc: { commentsCount: -1 },
         },
@@ -342,8 +319,7 @@ Event.prototype.removeComment = (req, res, emailId) => {
           });
         }
       );
-    }
-  );
+  
 };
 Event.prototype.removeImage = (eventId,fileId, res, callback) =>{
 Events.updateOne(

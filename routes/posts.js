@@ -171,7 +171,20 @@ function handleAddComments(req, res) {
 }
 
 function handleRemoveLike(req, res) {
-  postController.removeLike(req, res);
+  const userId = common.getUserId(req) || "";
+
+  userController.findUserByUserId(
+    common.castToObjectId(userId),
+    { _id: 0 },
+    (err, existingUser) => {
+      if (err || !existingUser) {
+        return common.sendErrorResponse(res, "Error getting user details");
+      }
+
+      postController.removeLike(req, res);
+    }
+  );
+  
 }
 
 function handleRemoveComment(req, res) {
@@ -185,7 +198,7 @@ function handleRemoveComment(req, res) {
         return common.sendErrorResponse(res, "Error getting user details");
       }
 
-      postController.removeComment(req, res, existingUser.emailId);
+      postController.removeLike(req, res, existingUser.emailId);
     }
   );
 }

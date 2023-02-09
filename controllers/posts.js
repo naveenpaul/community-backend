@@ -193,6 +193,7 @@ Post.prototype.removePost = (req, res, emailId) => {
 
 Post.prototype.addLike = (req, res, user) => {
   const id = common.castToObjectId(req.body.sourceId);
+  req.body.source="POST";
   posts.updateOne(
     { _id: id },
     {
@@ -250,6 +251,9 @@ Post.prototype.removeLike = (req, res) => {
         if (Err || !removed) {
           return common.sendErrorResponse(res, "Error in removing the Like");
         }
+        return res.send({
+          msg: "removed Like",
+        });
       });
     }
   );

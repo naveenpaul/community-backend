@@ -51,16 +51,11 @@ Like.prototype.getAllLikes = (req, res) => {
       });
     });
 };
-Like.prototype.removeLike = (req, res) => {
+Like.prototype.removeLike = (req, res,callback) => {
   const id = common.castToObjectId(req.body.sourceId);
   like.deleteOne(
     { sourceId: id, userId: common.getUserId(req) },
-    (deleteErr, deleteEvent) => {
-      if (deleteErr || !deleteEvent) {
-        return common.sendErrorResponse(res, "Failed to delete the like");
-      }
-      return res.send({ msg: "Succcessfully removed the like" });
-    }
+    callback
   );
 };
 
