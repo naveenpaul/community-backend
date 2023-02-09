@@ -142,6 +142,7 @@ Event.prototype.updateEvent = (req, res, emailId) => {
             // },
             startDate: req.body.startDate,
             endDate: req.body.endDate,
+            type: req.body.type,
             address: {
               name: req.body.address,
               city: req.body.city,
