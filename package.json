@@ -18,6 +18,7 @@
     "lint": "eslint \"**/*.js\""
   },
   "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@fortawesome/fontawesome-free": "^5.15.2",
     "@ladjs/bootstrap-social": "^7.0.2",
     "@octokit/rest": "^18.0.12",
@@ -40,6 +41,8 @@
     "express-flash": "^0.0.2",
     "express-handlebars": "^5.2.0",
     "express-session": "^1.17.1",
+    "ffmpeg": "0.0.4",
+    "fluent-ffmpeg": "^2.1.2",
     "googleapis": "^67.0.0",
     "instagram-node": "^0.5.8",
     "jquery": "^3.5.1",
