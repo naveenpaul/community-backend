@@ -18,8 +18,10 @@ const s3 = new AWS.S3();
 function Files() {}
 
 Files.prototype.uploadFileCloud = (filePath, uploadFileObj, res, callback) => {
+  console.log(`uplaod: ${filePath}`);
   fs.readFile(filePath, (fileReadErr, fileData) => {
     if (fileReadErr) {
+      console.log(`err:${fileReadErr}`)
       return common.sendErrorResponse(res, "Error in uploading file");
     }
 

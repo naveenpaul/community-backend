@@ -26,7 +26,7 @@ Post.prototype.addPost = (req, res, user, callback) => {
     name: req.body.name,
     type: req.body.type,
     text: req.body.text || "",
-    thumbnail: req.body.type=="VIDEO" ? [{url:req.body.thumbnail }]:[],
+    thumbnail: [],
     userId: common.getUserId(req),
     poll: poll,
     likesCount: 0,
@@ -145,7 +145,7 @@ Post.prototype.updatePost = (req, res, callback) => {
               text: req.body.text || "",
               poll: poll,    
       }
-      if(req.body.type=="VIDEO"){newValues["thumbnail"]=[{url:req.body.thumbnail }];}
+      // if(req.body.type=="VIDEO"){newValues["thumbnail"]=[{url:req.body.thumbnail }];}
       posts.updateOne(
         { _id: id },
         {

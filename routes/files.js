@@ -1,7 +1,10 @@
 const express = require("express");
 const router = express.Router();
+const  {spawn,fork}=require("child_process")
+const  path = require('path')
 const commonUtility = require("../common/commonUtility");
 const files = require("../controllers/files");
+const video =require('../controllers/videoCompress');
 const userControl = require("../controllers/user");
 const community = require("../controllers/community");
 const Post = require("../controllers/posts");
@@ -22,8 +25,10 @@ router.post(
   common.authorizeUser,
   handleFileUploadPost
 );
+router.post("/file/upload/video",common.authorizeUser, handleFileUploadVideo);
 router.post('/file/upload/event',common.authorizeUser,handleFileUploadEvent);
 router.put("/file/update/post", common.authorizeUser, handleFileUpdatePost);
+router.put("/file/update/video", common.authorizeUser, handleFileUpdateVideo);
 router.put("/file/update/event", common.authorizeUser,handleFileUpdateEvent)
 router.post("/file/list/source", common.authorizeUser, handleFileListBySource);
 router.get("/file/from/s3/:fileId", common.authorizeUser, handleGetFileFromS3);
@@ -103,6 +108,101 @@ function handleFileUploadPost(req, res) {
                   res,
                   callback
                 );
+              },
+              function (err, results) {
+                req.params.postId = post._id;
+                postController.getPostById(req, res, function (err, newPost) {
+                  return res.send({
+                    msg: "Successfully saved file",
+                    data: newPost,
+                  });
+                });
+              }
+            );
+          });
+        }
+      );
+    }
+  );
+}
+
+function handleFileUploadVideo(req, res) {
+  const files = req.files || [];
+  const userId = common.getUserId(req);
+  if (files.length == 0) {
+    return common.sendErrorResponse(res, "No files found");
+  }
+
+  userController.findUserByUserId(
+    common.castToObjectId(userId),
+    { _id: 0 },
+    (err, existingUser) => {
+      if (err || !existingUser) {
+        return common.sendErrorResponse(res, "Error getting User Details");
+      }
+      req.params.communityId = req.query.cId;
+      communityController.getCommunityById(
+        req,
+        res,
+        function (errC, community) {
+          req.body = req.query;
+          req.body.cId = community._id;
+          req.body.cName = community.name;
+          postController.addPost(req, res, existingUser, (Err, post) => {
+            if (Err || !post) {
+              return common.sendErrorResponse(res, "Error in adding the Post");
+            }
+            
+            async.each(
+              files,
+              function (file, callback) {
+                const child = fork("controllers/videoCompress.js");
+                const filePath=file.path;
+                child.send({ tempFilePath: filePath ,name: file.originalname });
+
+                //wasm ffmpeg  was not able to make it work
+                // const videoPath=file.path;
+                // const outputFileName = `compressed_${file.filename}`;
+                // const ffmpeg = spawn('ffmpeg', 
+                // ['-i', videoPath, '-vf', 'scale=-2:480', '-c:v', 
+                // 'libx264', '-crf', '24', '-preset', 'medium', '-c:a', 
+                // 'copy', path.join(__dirname, `uploads/${outputFileName}`)]);
+                // ffmpeg.stdout.on('data', (data) => {
+                //   console.log(`stdout: ${data}`);
+                // });
+
+                // ffmpeg.stderr.on('data', (data) => {
+                //   console.error(`stderr: ${data}`);
+                // });
+              
+                // ffmpeg.on('close', (code) => {
+                //   console.log(`FFmpeg process exited with code ${code}`);
+                //   res.download(path.join(__dirname, `uploads/${outputFileName}`));
+                // });
+                child.on("message", (message) => {
+                  const { statusCode, text,fileName } = message;
+                  if(statusCode!=200){
+                    console.log(statusCode);
+                    return common.sendErrorResponse(res,text);
+                  }
+              
+                  const uploadObj = {
+                    source: req.body.source,
+                    sourceId: post._id,
+                    type: filesController.extractTypeFromMimeType(file.mimetype),
+                    fileName: fileName,
+                    uniqFileName: file.originalname,
+                    tag: req.body.tag ? JSON.parse(req.body.tag) : {},
+                  };
+  
+                  filesController.uploadFileCloud(
+                    `${filePath}.mp4`,
+                    uploadObj,
+                    res,
+                    callback
+                  );
+                  
+                });
               },
               function (err, results) {
                 req.params.postId = post._id;
@@ -267,6 +367,106 @@ function handleFileUpdatePost(req,res){
   );
 }
 
+function handleFileUpdateVideo(req,res){
+  const files = req.files || [];
+  const deletedFiles= req.body.deleted || [];
+  const userId = common.getUserId(req);
+  // console.log(files.length);
+  console.log(deletedFiles.length);
+
+  userController.findUserByUserId(
+    common.castToObjectId(userId),
+    { _id: 0 },
+    (err, existingUser) => {
+      if (err || !existingUser) {
+        return common.sendErrorResponse(res, "Error getting User Details");
+      }
+      communityModel.findOne(
+        { _id: common.castToObjectId(req.query.cId) , "staff._id": common.castToObjectId(userId) },
+        (communityErr, existingcomm) => {
+          if (communityErr || !existingcomm) {
+            return common.sendErrorResponse(
+              res,
+              "You don't have access to specified community 1"
+            );
+          }
+          //delete files
+          async.each(
+            deletedFiles,
+            function (deletedFile,callback){
+              console.log(deletedFile);
+            postController.removeImage(common.castToObjectId(req.query.sourceId),common.castToObjectId(deletedFile),res,callback);
+            }, function (err,){
+              if( err ) {
+                // console.log("Error in deleting Files");
+                return common.sendErrorResponse(res,"Error in deleting Files");
+            } 
+           
+            //upload new files
+            console.log("Deleted Files")
+            async.each(
+              files,
+              function (file, callback) {
+                const child = fork("controllers/videoCompress.js");
+                const filePath=file.path;
+                child.send({ tempFilePath: filePath ,name: file.originalname });
+
+                child.on("message", (message) => {
+                  const { statusCode, text,fileName } = message;
+                  if(statusCode!=200){
+                    console.log(statusCode);
+                    return common.sendErrorResponse(res,text);
+                  }
+                  const uploadObj = {
+                    source: "POST",
+                    sourceId: common.castToObjectId(req.query.sourceId),
+                    type: filesController.extractTypeFromMimeType(file.mimetype),
+                    fileName: file.originalname,
+                    uniqFileName: file.originalname,
+                    tag: req.body.tag ? JSON.parse(req.body.tag) : {},
+                  };
+                  console.log("file uploading...")
+                  filesController.uploadFileCloud(
+                    `${filePath}.mp4`,
+                    uploadObj,
+                    res,
+                  callback
+                  );
+                  
+                });
+
+               
+              },
+              function (err, results) {
+                //update the post
+                if(err){
+                  // console.log("Error while uploading files");
+                  return common.sendErrorResponse(res,"Error while uploading files");
+                }
+                req.body=req.query;
+                req.body.postId=req.query.sourceId;
+                req.body.cId=req.query.cId;
+                postController.updatePost(req,res,(err,updatedPost) =>{
+                    if(err || !updatedPost){
+                      return common.sendErrorResponse(res,"Error while updating post");
+                    }
+                    return res.send({
+                      msg: "Successfully Updated Post",
+                    });
+                })
+               
+               
+              }
+            );
+            }
+          );
+          
+         
+        }
+      );   
+    }
+  );
+}
 function handleFileUpdateEvent(req,res){
   const files = req.files || [];
   const deletedFiles= req.body.deleted || [];
