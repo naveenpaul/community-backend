@@ -4,20 +4,24 @@ const commonUtility = require("../common/commonUtility");
 const common = new commonUtility();
 const like = require("../controllers/likes");
 const comment = require("./comments");
+const vote = require("./votes");
 const User = require("../models/User");
 const { reject } = require("async");
 const UserController = new (require("./user"))();
 const _ = require("lodash");
+const { Mongoose, default: mongoose } = require("mongoose");
+const Votes = require("../models/Votes");
 
 const likeController = new like();
 const commentController = new comment();
+const voteController = new vote();
 
 function Post() {}
 
 Post.prototype.addPost = (req, res, user, callback) => {
   let poll = req.body.poll
     ? req.body.poll.map(function (element) {
-        return { option: element, userId: [] };
+        return { option: element, optionId: mongoose.Types.ObjectId(),votesCount:0 };
       })
     : [];
   const newPost = new posts({
@@ -326,9 +330,8 @@ Post.prototype.getAllLikes = (req, res, emailId) => {
 
 Post.prototype.addVote = (req, res, emailId) => {
   const cId = common.castToObjectId(req.body.cId);
-  const id = common.castToObjectId(req.body.postId);
-  req.body.sourceId = req.body.postId;
-  const selectedOption = req.body.selectedOption;
+  const id = common.castToObjectId(req.body.sourceId);
+  const optionId =common.castToObjectId(req.body.optionId) ;
 
   community.findOne(
     { _id: cId, "staff.emailId": emailId },
@@ -340,25 +343,113 @@ Post.prototype.addVote = (req, res, emailId) => {
         );
       }
       //TODO: add the logic for voting!!
-      posts.updateOne({ _id: id }, {}, (Err, updated) => {
+      posts.updateOne({ _id: id,poll:{optionId:deletedOption} }, {
+        $inc: { "poll.$.votesCount" : 1}
+      }, (Err, updated) => {
         if (Err || !updated) {
           return common.sendErrorResponse(
             res,
             "error in incrementing the count"
           );
         }
-        commentController.addComment(req, res, (Err, saved) => {
-          if (Err || !saved) {
-            return common.sendErrorResponse(res, "Error in adding the comment");
+        voteController.addVote(req,res,(Err,saved)=>{
+          if(Err || !saved){
+            common.sendErrorResponse(res,"error in adding the vote");
+
           }
-          return res.send({
-            msg: "Successfully added the comment",
-            comment: saved,
-          });
-        });
+          return res.send({msg: "Added vote succussfully"});
+        })
       });
     }
   );
 };
 
+Post.prototype.removeVote = (req, res, emailId) => {
+  const cId = common.castToObjectId(req.body.cId);
+  const id = common.castToObjectId(req.body.sourceId);
+  const optionId =common.castToObjectId(req.body.optionId) ;
+
+  community.findOne(
+    { _id: cId, "staff.emailId": emailId },
+    (communityErr, existingcomm) => {
+      if (communityErr || !existingcomm) {
+        return common.sendErrorResponse(
+          res,
+          "You don't have access to specified community"
+        );
+      }
+      //TODO: add the logic for voting!!
+      posts.updateOne({ _id: id,poll:{optionId:deletedOption} }, {
+        $inc: { "poll.$.votesCount" : -1}
+      }, (Err, updated) => {
+        if (Err || !updated) {
+          return common.sendErrorResponse(
+            res,
+            "error in incrementing the count"
+          );
+        }
+        voteController.removeVote(req,res,(Err,saved)=>{
+          if(Err || !saved){
+            common.sendErrorResponse(res,"error in removing the vote");
+
+          }
+          return res.send({msg: "removed vote succussfully"});
+        })
+      });
+    }
+  );
+};
+
+Post.prototype.updateVote = (req, res, emailId) => {
+  const cId = common.castToObjectId(req.body.cId);
+  const id = common.castToObjectId(req.body.sourceId);
+  const optionId =common.castToObjectId(req.body.optionId) ;
+  const deletedOption =common.castToObjectId(req.body.deletedOption) ;
+
+  community.findOne(
+    { _id: cId, "staff.emailId": emailId },
+    (communityErr, existingcomm) => {
+      if (communityErr || !existingcomm) {
+        return common.sendErrorResponse(
+          res,
+          "You don't have access to specified community"
+        );
+      }
+      //TODO: add the logic for voting!!
+      posts.updateOne({ _id: id,poll:{optionId:deletedOption} }, {
+        $inc: { "poll.$.votesCount" : -1}
+      }, (Err, updated) => {
+        if (Err || !updated) {
+          return common.sendErrorResponse(
+            res,
+            "error in incrementing the count"
+          );
+        }
+        voteController.removeVote(req,res,(Err,saved)=>{
+          if(Err || !saved){
+            common.sendErrorResponse(res,"error in removing the vote");
+
+          }
+          posts.updateOne({ _id: id,poll:{optionId:optionId} }, {
+            $inc: { "poll.$.votesCount" : 1}
+          }, (Err, updated) => {
+            if (Err || !updated) {
+              return common.sendErrorResponse(
+                res,
+                "error in incrementing the count"
+              );
+            }
+            voteController.addVote(req,res,(Err,saved)=>{
+              if(Err || !saved){
+                common.sendErrorResponse(res,"error in adding the vote");
+    
+              }
+              return res.send({msg: "Added vote succussfully"});
+            })
+          });
+        })
+      });
+    }
+  );
+};
 module.exports = Post;
