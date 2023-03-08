@@ -1,6 +1,7 @@
 const votes = require("../models/Votes");
 const commonUtility  = require("../common/commonUtility")
 const common = new commonUtility();
+const _ = require("lodash");
 
 function Vote(){}
 
@@ -27,9 +28,25 @@ Vote.prototype.removeVote=(req,res,callback)=>{
 };
 //remove all votes for the deleted option when editing the post (garbage votes)
 Vote.prototype.removeVotesForOption=(req,res,callback)=>{
+  var deletedOptions=req.body.deletedOptions?  req.body.deletedOptions.map(function (element) {
+    return common.castToObjectId(element);
+  })
+  : [];
   votes.deleteMany(
-    {optionId:common.castToObjectId(req.body.sourceId)},
+    {sourceId:common.castToObjectId(req.body.sourceId),optionId:{ $in:deletedOptions} },
     callback
   )
+}
+
+Vote.prototype.isVoted=(sourceIds,user,callback)=>{
+  votes
+    .find({
+      userId: common.castToObjectId(user._id),
+      sourceId: { $in: sourceIds },
+    })
+    .lean()
+    .exec(function (err, votes) {
+      callback(err, _.keyBy(votes, "sourceId"));
+    });
 }
 module.exports = Vote;

@@ -28,7 +28,12 @@ Router.get(
   handleGetAllComments
 );
 Router.post("/posts/get/all/likes", common.authorizeUser, handleGetAllLikes);
-Router.post("/post/add/vote", common.authorizeUser, handleAddVote);
+Router.post("/posts/add/vote", common.authorizeUser, handleAddVote);
+Router.post("/posts/remove/vote", common.authorizeUser, handleRemoveVote);
+Router.post("/posts/update/vote", common.authorizeUser, handleUpdateVote);
+
+
+
 function handleAddPosts(req, res) {
   const userId = common.getUserId(req) || "";
 
@@ -234,6 +239,36 @@ function handleAddVote(req, res) {
       }
 
       postController.addVote(req, res, existingUser.emailId);
+    }
+  );
+}
+function handleRemoveVote(req, res) {
+  const userId = common.getUserId(req) || "";
+
+  userController.findUserByUserId(
+    common.castToObjectId(userId),
+    { emailId: 1 },
+    (err, existingUser) => {
+      if (err || !existingUser) {
+        return common.sendErrorResponse(res, "Error getting user details");
+      }
+
+      postController.removeVote(req, res, existingUser.emailId);
+    }
+  );
+}
+function handleUpdateVote(req, res) {
+  const userId = common.getUserId(req) || "";
+
+  userController.findUserByUserId(
+    common.castToObjectId(userId),
+    { emailId: 1 },
+    (err, existingUser) => {
+      if (err || !existingUser) {
+        return common.sendErrorResponse(res, "Error getting user details");
+      }
+
+      postController.updateVote(req, res, existingUser.emailId);
     }
   );
 }
