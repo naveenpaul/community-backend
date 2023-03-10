@@ -161,7 +161,6 @@ Post.prototype.updatePost = (req, res, callback) => {
               text: req.body.text || "",
                 
       }
-
       posts.updateOne(
         { _id: id },
         {
