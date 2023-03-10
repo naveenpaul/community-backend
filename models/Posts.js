@@ -11,7 +11,8 @@ const postsSchema = new mongoose.Schema(
     poll: [
       {
         option: String,
-        userId: [String],
+        optionId:mongoose.Schema.Types.ObjectId,
+        votesCount:Number,
       },
     ],
     type: {
