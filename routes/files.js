@@ -304,19 +304,8 @@ function handleFileUpdatePost(req,res){
             );
           }
           //delete files
-          async.each(
-            deletedFiles,
-            function (deletedFile,callback){
-              console.log(deletedFile);
-            postController.removeImage(common.castToObjectId(req.query.sourceId),common.castToObjectId(deletedFile),res,callback);
-            }, function (err,){
-              if( err ) {
-                // console.log("Error in deleting Files");
-                return common.sendErrorResponse(res,"Error in deleting Files");
-            } 
-           
+         
             //upload new files
-            console.log("Deleted Files")
             async.each(
               files,
               function (file, callback) {
@@ -342,6 +331,17 @@ function handleFileUpdatePost(req,res){
                   // console.log("Error while uploading files");
                   return common.sendErrorResponse(res,"Error while uploading files");
                 }
+                async.each(
+                  deletedFiles,
+                  function (deletedFile,callback){
+                    console.log(deletedFile);
+                  postController.removeImage(common.castToObjectId(req.query.sourceId),common.castToObjectId(deletedFile),res,callback);
+                  }, function (err,){
+                    if( err ) {
+                      // console.log("Error in deleting Files");
+                      return common.sendErrorResponse(res,"Error in deleting Files");
+                  } 
+                  console.log("Deleted Files")
                 req.body=req.query;
                 req.body.postId=req.query.sourceId;
                 req.body.cId=req.query.cId;
@@ -390,20 +390,7 @@ function handleFileUpdateVideo(req,res){
               "You don't have access to specified community 1"
             );
           }
-          //delete files
-          async.each(
-            deletedFiles,
-            function (deletedFile,callback){
-              console.log(deletedFile);
-            postController.removeImage(common.castToObjectId(req.query.sourceId),common.castToObjectId(deletedFile),res,callback);
-            }, function (err,){
-              if( err ) {
-                // console.log("Error in deleting Files");
-                return common.sendErrorResponse(res,"Error in deleting Files");
-            } 
-           
             //upload new files
-            console.log("Deleted Files")
             async.each(
               files,
               function (file, callback) {
@@ -443,6 +430,17 @@ function handleFileUpdateVideo(req,res){
                   // console.log("Error while uploading files");
                   return common.sendErrorResponse(res,"Error while uploading files");
                 }
+                async.each(
+                  deletedFiles,
+                  function (deletedFile,callback){
+                    console.log(deletedFile);
+                  postController.removeImage(common.castToObjectId(req.query.sourceId),common.castToObjectId(deletedFile),res,callback);
+                  }, function (err,){
+                    if( err ) {
+                      // console.log("Error in deleting Files");
+                      return common.sendErrorResponse(res,"Error in deleting Files");
+                  } 
+
                 req.body=req.query;
                 req.body.postId=req.query.sourceId;
                 req.body.cId=req.query.cId;
@@ -490,16 +488,8 @@ function handleFileUpdateEvent(req,res){
             );
           }
           //delete files
-          async.each(
-            deletedFiles,
-            function (deletedFile,callback){
-            eventController.removeImage(common.castToObjectId(req.query.sourceId),common.castToObjectId(deletedFile),res,callback);
-            }, function (err){
-              if( err ) {
-                // console.log("Error in deleting Files");
-                return common.sendErrorResponse(res,"Error in deleting Files");
-            } 
-           console.log("deleted files")
+         
+         
             //upload new files
             async.each(
               files,
@@ -525,6 +515,16 @@ function handleFileUpdateEvent(req,res){
                   // console.log("Error while uploading files");
                   return common.sendErrorResponse(res,"Error while uploading files");
                 }
+                async.each(
+                  deletedFiles,
+                  function (deletedFile,callback){
+                  eventController.removeImage(common.castToObjectId(req.query.sourceId),common.castToObjectId(deletedFile),res,callback);
+                  }, function (err){
+                    if( err ) {
+                      // console.log("Error in deleting Files");
+                      return common.sendErrorResponse(res,"Error in deleting Files");
+                  } 
+                  console.log("deleted files")
                 req.body=req.query;
                 req.body.eventId=req.query.sourceId;
                 req.body.cId=req.query.cId;
