@@ -166,7 +166,7 @@ Event.prototype.updateEvent = (req, res, emailId) => {
 
 Event.prototype.removeEvent = (req, res, emailId) => {
   const cId = common.castToObjectId(req.body.cId);
-  const id = common.castToObjectId(req.body.eventId);
+  const id = common.castToObjectId(req.body.sourceId);
 
   community.findOne(
     { _id: cId, "staff.emailId": emailId },
@@ -177,12 +177,23 @@ Event.prototype.removeEvent = (req, res, emailId) => {
           "You don't have access to specified community"
         );
       }
-
+      //needs to add the logic for the deletiion of content such as images when we solve s3 issue
       Events.deleteOne({ _id: id }, (deleteErr, deleteEvent) => {
         if (deleteErr || !deleteEvent) {
           return common.sendErrorResponse(res, "Failed to delete the Event");
         }
-        return res.send({ msg: "Succcessfully removed the event" });
+        likeController.removeAllLikesOfSource(req, (Err, removed) => {
+          if (Err || !removed) {
+            return common.sendErrorResponse(res, "not able to remove the likes");
+            }
+        commentController.removeAllCommentsOfSource(req, (Err, removed) => {
+          if (Err || !removed) {
+            return common.sendErrorResponse(res, "Not able to remove comments");
+            }
+        return res.send({ msg: "Succcessfully removed the Post" });
+      });
+    }
+  );
       });
     }
   );
@@ -298,7 +309,7 @@ Event.prototype.removeLike = (req, res) => {
 
 Event.prototype.removeComment = (req, res, emailId) => {
       Events.updateOne(
-        { _id: common.castToObjectId(req.body.sourceId) },
+        { _id: common.castToObjectId(req.body.sourceId), },
         {
           $inc: { commentsCount: -1 },
         },
@@ -306,7 +317,7 @@ Event.prototype.removeComment = (req, res, emailId) => {
           if (Err || !updated) {
             return common.sendErrorResponse(
               res,
-              "error in incrementing the count"
+              "error in decrementing the count"
             );
           }
           commentController.removeComment(req, res, (Err, saved) => {

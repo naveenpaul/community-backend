@@ -59,4 +59,12 @@ Like.prototype.removeLike = (req, res,callback) => {
   );
 };
 
+Like.prototype.removeAllLikesOfSource=(req,callback)=>{
+  const sourceId= common.castToObjectId(req.body.sourceId);
+  like.deleteMany(
+    {sourceId: sourceId},
+    callback
+  );
+}
+
 module.exports = Like;
