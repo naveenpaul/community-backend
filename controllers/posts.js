@@ -208,7 +208,7 @@ Post.prototype.removeImage = (postId,fileId, res, callback) =>{
 }
 Post.prototype.removePost = (req, res, emailId) => {
   const cId = common.castToObjectId(req.body.cId);
-  const id = common.castToObjectId(req.body.postId);
+  const id = common.castToObjectId(req.body.sourceId);
 
   community.findOne(
     { _id: cId, "staff.emailId": emailId },
@@ -219,16 +219,26 @@ Post.prototype.removePost = (req, res, emailId) => {
           "You don't have access to specified community"
         );
       }
-
+      //still cannot delete the images and videos as there is problem with deleting videos in S3
       posts.deleteOne({ _id: id }, (deleteErr, deletePost) => {
         if (deleteErr || !deletePost) {
           return common.sendErrorResponse(res, "Failed to delete the Post");
         }
+        likeController.removeAllLikesOfSource(req, (Err, removed) => {
+          if (Err || !removed) {
+            return common.sendErrorResponse(res, "Post removed but not the likes from the db");
+            }
+        commentController.removeAllCommentsOfSource(req, (Err, removed) => {
+          if (Err || !removed) {
+            return common.sendErrorResponse(res, "Post removed but not the likes from the db");
+            }
         return res.send({ msg: "Succcessfully removed the Post" });
       });
     }
   );
-};
+})
+
+})}
 
 Post.prototype.addLike = (req, res, user) => {
   const id = common.castToObjectId(req.body.sourceId);
@@ -298,30 +308,17 @@ Post.prototype.removeLike = (req, res) => {
   );
 };
 Post.prototype.removeComment = (req, res, emailId) => {
-  const cId = common.castToObjectId(req.body.cId);
-  const id = common.castToObjectId(req.body.postId);
-  req.body.sourceId = req.body.postId;
-
-  community.findOne(
-    { _id: cId, "staff.emailId": emailId },
-    (communityErr, existingcomm) => {
-      if (communityErr || !existingcomm) {
-        return common.sendErrorResponse(
-          res,
-          "You don't have access to specified community"
-        );
-      }
-
+  const id = common.castToObjectId(req.body.sourceId);
       posts.updateOne(
         { _id: id },
         {
           $inc: { commentsCount: -1 },
-        },
+        }).exec(
         (Err, updated) => {
           if (Err || !updated) {
             return common.sendErrorResponse(
               res,
-              "error in incrementing the count"
+              "error in decrementing the count"
             );
           }
           commentController.removeComment(req, res, (Err, saved) => {
@@ -336,8 +333,6 @@ Post.prototype.removeComment = (req, res, emailId) => {
         }
       );
     }
-  );
-};
 
 Post.prototype.getAllComment = (req, res) => {
   commentController.getAllComments(req, res);

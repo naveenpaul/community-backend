@@ -45,7 +45,7 @@ Comment.prototype.getAllComments = (req, res) => {
 Comment.prototype.removeComment = (req, res) => {
   const id = common.castToObjectId(req.body.id);
   const sourceId = common.castToObjectId(req.body.sourceId);
-
+  // console.log(id);
   comment.deleteOne(
     { _id: id, sourceId: sourceId, userId: common.getUserId(req) },
     (deleteErr, deleteEvent) => {
@@ -56,4 +56,12 @@ Comment.prototype.removeComment = (req, res) => {
     }
   );
 };
+
+Comment.prototype.removeAllCommentsOfSource =(req,callback)=>{
+  const sourceId=common.castToObjectId(req.body.sourceId);
+  comment.deleteMany(
+    {sourceId:sourceId},
+    callback
+  )
+}
 module.exports = Comment;

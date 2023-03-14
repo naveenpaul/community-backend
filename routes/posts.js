@@ -203,7 +203,7 @@ function handleRemoveComment(req, res) {
         return common.sendErrorResponse(res, "Error getting user details");
       }
 
-      postController.removeLike(req, res, existingUser.emailId);
+      postController.removeComment(req, res, existingUser.emailId);
     }
   );
 }
