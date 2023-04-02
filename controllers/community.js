@@ -2,6 +2,7 @@ const community = require("../models/community");
 const commonUtility = require("../common/commonUtility");
 const user = require("../controllers/user");
 const common = new commonUtility();
+const _ = require("lodash");
 
 function Community() {}
 
@@ -239,4 +240,14 @@ Community.prototype.getAllStaff = (req, res, id) => {
     }
   );
 };
+Community.prototype.getCommunityLogo=(sourceIds, callback)=>{
+  community.find({
+    _id:{ $in: sourceIds }
+  })
+  .lean()
+    .exec(function (err, community) {
+      callback(err, _.keyBy(community, "_id"));
+    });
+
+}
 module.exports = Community;
