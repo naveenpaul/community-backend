@@ -95,7 +95,7 @@ Event.prototype.getEventsFeed = (req, res, user) => {
     });
 };
 
-Event.prototype.getEventById = async (req, res, user) => {
+Event.prototype.getEventById = async (req, res, callback) => {
   const filterQuery = {
     _id: common.castToObjectId(req.params.eventId),
   };
@@ -105,10 +105,15 @@ Event.prototype.getEventById = async (req, res, user) => {
 
     if (!existingEvent) Promise.reject();
 
+    if(!callback)
+    {
     res.send({
       event: existingEvent,
       msg: "Successfully got the event",
     });
+  }
+   else { callback(null,existingEvent);}
+
   } catch (err) {
     console.log(err.toString());
     return common.sendErrorResponse(res, "Error in getting event");
