@@ -3,10 +3,12 @@ const Router = express.Router();
 const CommonUtility = require("../common/commonUtility");
 const event = require("../controllers/events");
 const userControl = require("../controllers/user");
+const notificationControl = require('../controllers/notification-service')
 
 const common = new CommonUtility();
 const eventController = new event();
 const userController = new userControl();
+const notificationController= new notificationControl();
 
 Router.post("/events/add", common.authorizeUser, handleAddEvents);
 Router.post("/events/get/all", common.authorizeUser, handleGetEvents);
@@ -47,10 +49,16 @@ function handleAddEvents(req, res) {
         if (Err || !saved) {
           return common.sendErrorResponse(res, "Error in adding the Event");
         }
-        
-        res.send({
-          msg: "Added Event Successfully",
-        });
+        notificationController.sendNotification(req,saved,'event',(err,response)=>{
+          if(err){
+            console.log("err in seding the notification");
+          }
+          res.send({
+            msg: "Added Event Successfully",
+            data:saved,
+          });
+
+        })
       });
     }
   );
@@ -97,7 +105,12 @@ function handleGetEventById(req, res) {
       if (err || !existingUser) {
         return common.sendErrorResponse(res, "Error getting user details");
       }
-      eventController.getEventById(req, res, existingUser);
+      eventController.getEventById(req, res,(err,response)=>{
+        res.send({
+          event: response,
+          msg: "Successfully got the event",
+        });
+      });
     }
   );
 }

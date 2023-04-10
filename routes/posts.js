@@ -3,10 +3,12 @@ const Router = express.Router();
 const CommonUtility = require("../common/commonUtility");
 const Post = require("../controllers/posts");
 const userControl = require("../controllers/user");
+const notificationControl = require('../controllers/notification-service')
 
 const common = new CommonUtility();
 const postController = new Post();
 const userController = new userControl();
+const notificationController= new notificationControl();
 
 Router.post("/posts/add", common.authorizeUser, handleAddPosts);
 Router.post("/posts/get/all", common.authorizeUser, handleGetPosts);
@@ -48,10 +50,16 @@ function handleAddPosts(req, res) {
         if (Err || !saved) {
           return common.sendErrorResponse(res, "Error in adding the Post");
         }
-        res.send({
-          data:saved,
-          msg: "Added Post Successfully",
-        });
+        notificationController.sendNotification(req,saved,"post",(err,response)=>{
+          if(err){
+            console.log('error in sending notification');
+          }
+          res.send({
+            data:saved,
+            msg: "Added Post Successfully",
+          });
+        })
+       
       });
     }
   );

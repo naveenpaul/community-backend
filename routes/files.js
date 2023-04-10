@@ -8,6 +8,7 @@ const video =require('../controllers/videoCompress');
 const userControl = require("../controllers/user");
 const community = require("../controllers/community");
 const Post = require("../controllers/posts");
+const notificationControl = require('../controllers/notification-service')
 const communityModel = require("../models/community");
 const event = require("../controllers/events");
 const common = new commonUtility();
@@ -15,6 +16,7 @@ const filesController = new files();
 const postController = new Post();
 const userController = new userControl();
 const communityController = new community();
+const notificationController= new notificationControl();
 
 const eventController = new event();
 const async = require("async");
@@ -112,10 +114,14 @@ function handleFileUploadPost(req, res) {
               function (err, results) {
                 req.params.postId = post._id;
                 postController.getPostById(req, res, function (err, newPost) {
-                  return res.send({
-                    msg: "Successfully saved file",
-                    data: newPost,
-                  });
+
+                  notificationController.sendNotification(req,newPost,'post',(err,response)=>{
+                    if(err)console.log('error in sending the notification');
+                    return res.send({
+                      msg: "Successfully saved file",
+                      data: newPost,
+                    });
+                  })
                 });
               }
             );
@@ -207,10 +213,17 @@ function handleFileUploadVideo(req, res) {
               function (err, results) {
                 req.params.postId = post._id;
                 postController.getPostById(req, res, function (err, newPost) {
-                  return res.send({
-                    msg: "Successfully saved file",
-                    data: newPost,
-                  });
+                
+                  notificationController.sendNotification(req,newPost,'post',(err,response)=>{
+                    if(err){
+                      console.log('error in sending the notification');
+                    }
+                    return res.send({
+                      msg: "Successfully saved file",
+                      data: newPost,
+                    });
+                  })
+                  
                 });
               }
             );
@@ -266,9 +279,17 @@ function handleFileUploadEvent(req, res) {
               function (err, results) {
                 req.params.eventId = event._id;
                 eventController.getEventById(req, res, function (err, newEvent) {
-                  return res.send({
-                    msg: "Successfully saved file",
-                    data: newEvent,
+                  if(err){
+                    console.log('err in getting the event');
+                  }
+                  notificationController.sendNotification(req,newEvent,'event',(err,response)=>{
+                    if(err){
+                      console.log('error in sending the notification');
+                    }
+                    return res.send({
+                      msg: "Successfully saved file",
+                      data: newEvent,
+                    });
                   });
                 });
               }
