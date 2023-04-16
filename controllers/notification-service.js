@@ -7,13 +7,13 @@ const common = new commonUtility();
 
 function Notification() {}
 
-Notification.prototype.sendNotification = (req,source, type, callback) => {
-    const image = source.thumbnail[0]?.url || null ;
-    const userId=common.getUserId(req);
+Notification.prototype.sendNotification = (req, source, type, callback) => {
+    const image = source.thumbnail[0]?.url || null;
+    const userId = common.getUserId(req);
     console.log(image);
     // console.log("inside the notification");
     const message = {
-        // to: "/topics/test",
+        to: "/topics/test",
         notification: {
             body: source.name,
             title: source.cName,
@@ -23,10 +23,31 @@ Notification.prototype.sendNotification = (req,source, type, callback) => {
         },
         data: { _id: source._id, source: type },
         android_channel_id: "BoundlessApp",
+        // condition: "('all' in topics) && !('"+userId+"' in topics) ",
+    };
+    //  console.log(type);
+
+    fcm.send(message, callback);
+};
+
+Notification.prototype.sendNotificationForRequest = (req, connection, type, callback) => {
+    // console.log(connection);
+    const image=null;
+    const message = {
+        to: "/topics/" + connection.receiverId,
+        notification: {
+            title: "New request from" + ' "' + connection.ownerName + '"',
+            body: "tap to checkout!",
+            image: image,
+            icon: "ic_notification",
+            color: "#ffe550",
+        },
+        data: { source: type },
+        android_channel_id: "BoundlessApp",
         // "android": {
         //   "notification": {"image": image},
         // },
-        condition: "('all' in topics) && !('"+userId+"' in topics) ",
+        // condition: "('all' in topics) && !('"+userId+"' in topics) ",
     };
     //  console.log(type);
 

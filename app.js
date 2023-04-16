@@ -36,6 +36,8 @@ const posts = require("./routes/posts");
 const community = require("./routes/community");
 const user = require("./routes/user");
 const report= require("./routes/reports");
+const matrimonyUser = require('./routes/matrimony_user');
+const matrimonyConnections= require('./routes/matrimony_connections');
 /**
  * API keys and Passport configuration.
  */
@@ -96,6 +98,8 @@ app.use("/", events);
 app.use("/", posts);
 app.use("/", community);
 app.use("/",report);
+app.use("/",matrimonyUser);
+app.use("/",matrimonyConnections)
 app.use(express.static(path.join(__dirname, "downloads")));
 
 /**

@@ -3,7 +3,7 @@ const filesSchema = new mongoose.Schema(
   {
     source: {
       type: String,
-      enum: ["EVENT", "POST", "USERPROFILE","COMMUNITY"],
+      enum: ["EVENT", "POST", "USERPROFILE","COMMUNITY","MATRIMONYUSER"],
     },
     sourceId: mongoose.Schema.Types.ObjectId,
     type: String,

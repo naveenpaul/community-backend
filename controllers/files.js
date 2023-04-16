@@ -10,6 +10,7 @@ AWS.config.update({
 
 const posts = require("../models/Posts");
 const Events = require("../models/Events");
+const matrimonyUser = require('../models/matrimony_user');
 
 const commonUtility = require("../common/commonUtility");
 const common = new commonUtility();
@@ -30,6 +31,7 @@ Files.prototype.uploadFileCloud = (filePath, uploadFileObj, res, callback) => {
       fileData,
       (s3UploadErr, uploadedFile) => {
         if (s3UploadErr) {
+          console.log('erro in upload ');
           removeFileFromStorage(filePath);
           return common.sendErrorResponse(res, "Error in upload file to S3");
         }
@@ -58,7 +60,7 @@ Files.prototype.uploadFileCloud = (filePath, uploadFileObj, res, callback) => {
               );
             }
           }
-
+        
           if (uploadFileObj.source == "POST") {
             posts
               .updateOne(
@@ -111,7 +113,14 @@ Files.prototype.uploadFileCloud = (filePath, uploadFileObj, res, callback) => {
                 });
               }
             });
-          } else {
+          } else if(callback){
+            callback(null,),
+            {
+              msg: "Successfully saved file",
+              file: savedFile,
+            }
+          }
+          else {
             return res.send({
               msg: "Successfully saved file",
               file: savedFile,
