@@ -7,13 +7,13 @@ const common = new commonUtility();
 
 function Notification() {}
 
-Notification.prototype.sendNotification = (req,source, type, callback) => {
-    const image = source.thumbnail[0]?.url || null ;
-    const userId=common.getUserId(req);
+Notification.prototype.sendNotification = (req, source, type, callback) => {
+    const image = source.thumbnail[0]?.url || null;
+    const userId = common.getUserId(req);
     console.log(image);
     // console.log("inside the notification");
     const message = {
-        // to: "/topics/test",
+        to: "/topics/test",
         notification: {
             body: source.name,
             title: source.cName,
@@ -26,7 +26,7 @@ Notification.prototype.sendNotification = (req,source, type, callback) => {
         // "android": {
         //   "notification": {"image": image},
         // },
-        condition: "('all' in topics) && !('"+userId+"' in topics) ",
+        // condition: "('test' in topics) && !('"+userId+"' in topics) ",
     };
     //  console.log(type);
 

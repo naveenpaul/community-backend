@@ -1,9 +1,11 @@
 const community = require("../models/community");
 const commonUtility = require("../common/commonUtility");
 const user = require("../controllers/user");
+const filesControl= require("../controllers/files");
+const filesController = new filesControl();
 const common = new commonUtility();
 const _ = require("lodash");
-
+const async = require("async");
 function Community() {}
 
 Community.prototype.addCommunity = (req, res, liuDetails, callback) => {
@@ -11,6 +13,8 @@ Community.prototype.addCommunity = (req, res, liuDetails, callback) => {
   if (!common.validateString(req.body.name)) {
     return common.sendErrorResponse(res, "Enter valid team name");
   }
+  const files = req.files || [];
+  console.log(files);
   const newCommunity = new community({
     name: req.body.name,
     address: {
@@ -22,6 +26,7 @@ Community.prototype.addCommunity = (req, res, liuDetails, callback) => {
     description: req.body.description,
     logo: req.body.logo,
     backgroundImg: req.body.backgroundImg,
+    verified:false,
     staff: [
       {
         _id: common.castToObjectId(common.getUserId(req)),
@@ -34,7 +39,35 @@ Community.prototype.addCommunity = (req, res, liuDetails, callback) => {
       },
     ],
   });
-  newCommunity.save(callback);
+  newCommunity.save((err,community)=>{
+    async.each(
+      files,
+      function (file,callback) {
+        const uploadObj = {
+          fieldname:file.fieldname,
+          source: "COMMUNITY",
+          sourceId: community._id,
+          type: filesController.extractTypeFromMimeType(file.mimetype),
+          fileName: file.originalname,
+          uniqFileName: file.originalname,
+          tag: req.body.tag ? JSON.parse(req.body.tag) : {},
+        };
+        filesController.uploadFileCloud(
+          file.path,
+          uploadObj,
+          res,
+          callback
+        );
+      },
+      function (err, results) {
+       
+        return res.send({
+          msg: "Successfully saved file",
+          data: results,
+        });
+      }
+    );
+  });
 };
 
 Community.prototype.getAllCommunity = (req, res, userId) => {
@@ -43,7 +76,12 @@ Community.prototype.getAllCommunity = (req, res, userId) => {
   if (req.body.isStaff) {
     query = {
       "staff._id": common.castToObjectId(userId),
+      
     };
+    //currently there are the communities without any value as verified , need to change when all communities has verified tag
+    if(req.body.verified=='true'){
+      query['$not']={verified:false,};
+    }
   }
 
   community
@@ -66,7 +104,7 @@ Community.prototype.getCommunityById = (req, res, callback) => {
     .findOne({ _id: common.castToObjectId(req.params.communityId) })
     .exec((err, data) => {
       if (callback) {
-        callback(err, data);
+        return callback(err, data);
       } else {
         return res.send({
           data: data,

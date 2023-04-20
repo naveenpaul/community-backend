@@ -3,7 +3,8 @@ const Router = express.Router();
 const CommonUtility = require("../common/commonUtility");
 const Post = require("../controllers/posts");
 const userControl = require("../controllers/user");
-const notificationControl = require('../controllers/notification-service')
+const notificationControl = require('../controllers/notification-service');
+const { data } = require("jquery");
 
 const common = new CommonUtility();
 const postController = new Post();
@@ -13,7 +14,7 @@ const notificationController= new notificationControl();
 Router.post("/posts/add", common.authorizeUser, handleAddPosts);
 Router.post("/posts/get/all", common.authorizeUser, handleGetPosts);
 Router.get(
-  "/posts/feed/page/:pageNumber",
+  "/posts/feed/page/:pageNumber/:cId",
   common.authorizeUser,
   handleGetPostsFeed
 );
@@ -33,6 +34,7 @@ Router.post("/posts/get/all/likes", common.authorizeUser, handleGetAllLikes);
 Router.post("/posts/add/vote", common.authorizeUser, handleAddVote);
 Router.post("/posts/remove/vote", common.authorizeUser, handleRemoveVote);
 Router.post("/posts/update/vote", common.authorizeUser, handleUpdateVote);
+Router.get('/posts/get/tags',common.authorizeUser,handleGetTags);
 
 
 
@@ -278,6 +280,45 @@ function handleUpdateVote(req, res) {
 
       postController.updateVote(req, res, existingUser.emailId);
     }
+  );
+}
+
+function handleGetTags(req,res){
+  const userId = common.getUserId(req) || "";
+
+  userController.findUserByUserId(
+    common.castToObjectId(userId),
+    { emailId: 1 },
+    (err, existingUser) => {
+      if (err || !existingUser) {
+        return common.sendErrorResponse(res, "Error getting user details");
+      }
+
+      return res.send({
+        tags: [
+            "joy",
+            "sorrow",
+            "anger",
+            "fear",
+            "hope",
+            "love",
+            "peace",
+            "gratitude",
+            "reverence",
+            "repentance",
+            "humility",
+            "doubt",
+            "faith",
+            "patience",
+            "trust",
+            "forgiveness",
+            "regret",
+            "despair",
+            "grace",
+            "mercy",
+        ],
+    });
+  }
   );
 }
 
