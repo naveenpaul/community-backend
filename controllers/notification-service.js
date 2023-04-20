@@ -13,7 +13,7 @@ Notification.prototype.sendNotification = (req, source, type, callback) => {
     console.log(image);
     // console.log("inside the notification");
     const message = {
-        to: "/topics/test",
+        // to: "/topics/test",
         notification: {
             body: source.name,
             title: source.cName,
@@ -26,7 +26,7 @@ Notification.prototype.sendNotification = (req, source, type, callback) => {
         // "android": {
         //   "notification": {"image": image},
         // },
-        // condition: "('test' in topics) && !('"+userId+"' in topics) ",
+        condition: "('all' in topics) && !('" + userId + "' in topics) ",
     };
     //  console.log(type);
 
