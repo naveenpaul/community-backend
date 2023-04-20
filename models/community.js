@@ -4,6 +4,7 @@ const communitySchema = new mongoose.Schema(
     {
         name: String,
         address: {
+            name:String,
             city: String,
             pincode: String,
             state: String,
@@ -14,6 +15,10 @@ const communitySchema = new mongoose.Schema(
         description: String,
         logo: String,
         backgroundImg: String,
+        verified:{
+            type:Boolean,
+            default:true
+        },
         staff: [
             {
                 _id: mongoose.Schema.Types.ObjectId,

@@ -85,9 +85,11 @@ function handleFileUploadPost(req, res) {
         req,
         res,
         function (errC, community) {
-          req.body = req.query;
-          req.body.cId = community._id;
-          req.body.cName = community.name;
+          // we require a dummy request to get all the fields in a body for adding req
+          var tags=req.body.tags;
+          req.body=req.query;
+          req.body.tags=tags;
+          // console.log(req.body.tags);
           postController.addPost(req, res, existingUser, (Err, post) => {
             if (Err || !post) {
               return common.sendErrorResponse(res, "Error in adding the Post");
@@ -96,7 +98,7 @@ function handleFileUploadPost(req, res) {
               files,
               function (file, callback) {
                 const uploadObj = {
-                  source: req.body.source,
+                  source: "POST",
                   sourceId: post._id,
                   type: filesController.extractTypeFromMimeType(file.mimetype),
                   fileName: file.originalname,
@@ -116,11 +118,12 @@ function handleFileUploadPost(req, res) {
                 postController.getPostById(req, res, function (err, newPost) {
 
                   notificationController.sendNotification(req,newPost,'post',(err,response)=>{
-                    if(err)console.log('error in sending the notification');
+                    if(err){console.log('error in sending the notification');}
                     return res.send({
                       msg: "Successfully saved file",
                       data: newPost,
                     });
+                    return;
                   })
                 });
               }
@@ -135,6 +138,7 @@ function handleFileUploadPost(req, res) {
 function handleFileUploadVideo(req, res) {
   const files = req.files || [];
   const userId = common.getUserId(req);
+  const tags = req.body.tags;
   if (files.length == 0) {
     return common.sendErrorResponse(res, "No files found");
   }
@@ -154,6 +158,7 @@ function handleFileUploadVideo(req, res) {
           req.body = req.query;
           req.body.cId = community._id;
           req.body.cName = community.name;
+          req.body.tags=JSON.parse(tags) ;
           postController.addPost(req, res, existingUser, (Err, post) => {
             if (Err || !post) {
               return common.sendErrorResponse(res, "Error in adding the Post");
@@ -363,6 +368,7 @@ function handleFileUpdatePost(req,res){
                       return common.sendErrorResponse(res,"Error in deleting Files");
                   } 
                   console.log("Deleted Files")
+                  console.log(req.query)
                 req.body=req.query;
                 req.body.postId=req.query.sourceId;
                 req.body.cId=req.query.cId;
@@ -461,10 +467,13 @@ function handleFileUpdateVideo(req,res){
                       // console.log("Error in deleting Files");
                       return common.sendErrorResponse(res,"Error in deleting Files");
                   } 
-
+                var tags=req.body.tags;
+                console.log(tags);
+                //we should not lost tags
                 req.body=req.query;
                 req.body.postId=req.query.sourceId;
                 req.body.cId=req.query.cId;
+                req.body.tags=JSON.parse(tags);
                 postController.updatePost(req,res,(err,updatedPost) =>{
                     if(err || !updatedPost){
                       return common.sendErrorResponse(res,"Error while updating post");

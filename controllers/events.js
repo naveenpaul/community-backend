@@ -72,7 +72,11 @@ Event.prototype.getEventsFeed = (req, res, user) => {
   }
   const limit = 10;
   const offset = (pageNumber - 1) * limit;
-  Events.find()
+  const filter =
+  req.params.cId != 0
+      ? { createdAt: { $lt: new Date() }, cId: common.castToObjectId(req.params.cId) }
+      : { createdAt: { $lt: new Date() } };
+  Events.find(filter)
     .sort({ createdAt: -1 })
     .skip(offset)
     .limit(limit)

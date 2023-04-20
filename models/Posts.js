@@ -8,6 +8,7 @@ const postsSchema = new mongoose.Schema(
     name: String,
     text: String,
     thumbnail: [],
+    tags:[String],
     poll: [
       {
         option: String,
@@ -19,6 +20,8 @@ const postsSchema = new mongoose.Schema(
       type: String,
       enum: ["TEXT", "IMG", "VIDEO", "POLL"],
     },
+    tags:[String]
+    ,
     likes: [
       {
         fullName: String,

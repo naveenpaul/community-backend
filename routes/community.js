@@ -5,6 +5,7 @@ const community = require("../controllers/community");
 const userControl = require("../controllers/user");
 const activityLog = require("../controllers/activityLogs");
 
+
 const common = new CommonUtility();
 const communityController = new community();
 const userController = new userControl();
@@ -74,7 +75,25 @@ function handleGetcommunities(req, res) {
 }
 
 function handleGetCommunityById(req, res) {
-  communityController.getCommunityById(req, res);
+  const userId = common.getUserId(req) || "";
+  userController.findUserByUserId(
+    common.castToObjectId(userId),
+    { emailId: 1 },
+    (err, existingUser) => {
+      if (err || !existingUser) {
+        return common.sendErrorResponse(res, "Error getting user details");
+      }
+      return communityController.getCommunityById(req, res,(err,community)=>{
+        if(err || !community){
+          return common.sendErrorResponse(res,"Err in finding the community");
+        }
+        return res.send({
+          data: community,
+          msg: "Successfully fetched community",
+        });
+      });
+    }
+  );
 }
 
 function handleUpdatecommunity(req, res) {

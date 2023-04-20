@@ -33,6 +33,7 @@ Post.prototype.addPost = (req, res, user, callback) => {
         type: req.body.type,
         text: req.body.text || "",
         thumbnail: [],
+        tags:req.body.tags,
         userId: common.getUserId(req),
         poll: poll,
         likesCount: 0,
@@ -72,9 +73,13 @@ Post.prototype.getPostsFeed = (req, res, user) => {
     let pageNumber = parseInt(req.params.pageNumber);
     const limit = 10;
     const offset = (pageNumber - 1) * limit;
-
+    console.log(req.params.cId);
+    const filter =
+        req.params.cId != 0
+            ? { createdAt: { $lt: new Date() }, cId: common.castToObjectId(req.params.cId) }
+            : { createdAt: { $lt: new Date() } };
     posts
-        .find({ createdAt: { $lt: new Date() } })
+        .find(filter)
         .sort({ createdAt: -1 })
         .skip(offset)
         .limit(limit)
@@ -96,6 +101,7 @@ Post.prototype.getPostsFeed = (req, res, user) => {
                 communityController.getCommunityLogo(_.map(allPosts, "cId"), function (err, communityMap) {
                     allPosts.forEach((post) => {
                       // console.log(communityMap[post.cId].logo);
+                      if(communityMap[post.cId]!=undefined)
                       post.communityLogo =communityMap[post.cId].logo;
                       });
                   
@@ -165,6 +171,7 @@ Post.prototype.updatePost = (req, res, callback) => {
                 cId: req.body.cId,
                 name: req.body.name,
                 text: req.body.text || "",
+                tags:req.body.tags,
                 
       }
       posts.updateOne(
