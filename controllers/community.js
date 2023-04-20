@@ -78,7 +78,7 @@ Community.prototype.getAllCommunity = (req, res, userId) => {
       "staff._id": common.castToObjectId(userId),
       
     };
-    //currently there are the communities without any value as verified , need to change when all communities has verified tag
+    //currently there are the communities without any value as verified ,this code need to change when all communities has verified tag
     // console.log(req.body.verified)
     if(req.body.verified=='true'){
       query = {

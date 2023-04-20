@@ -34,6 +34,7 @@ Post.prototype.addPost = (req, res, user, callback) => {
         text: req.body.text || "",
         thumbnail: [],
         tags:req.body.tags,
+        tags:req.body.tags,
         userId: common.getUserId(req),
         poll: poll,
         likesCount: 0,
@@ -73,10 +74,10 @@ Post.prototype.getPostsFeed = (req, res, user) => {
     let pageNumber = parseInt(req.params.pageNumber);
     const limit = 10;
     const offset = (pageNumber - 1) * limit;
-    console.log(req.params.cId);
+    console.log(req.query.cId);
     const filter =
-        req.params.cId != 0
-            ? { createdAt: { $lt: new Date() }, cId: common.castToObjectId(req.params.cId) }
+        req.query.cId.length > 5
+            ? { createdAt: { $lt: new Date() }, cId: common.castToObjectId(req.query.cId) }
             : { createdAt: { $lt: new Date() } };
     posts
         .find(filter)
