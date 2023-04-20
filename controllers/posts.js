@@ -74,9 +74,8 @@ Post.prototype.getPostsFeed = (req, res, user) => {
     let pageNumber = parseInt(req.params.pageNumber);
     const limit = 10;
     const offset = (pageNumber - 1) * limit;
-    console.log(req.query.cId);
     const filter =
-        req.query.cId.length > 5
+    req.query.cId && req.query.cId.length > 5
             ? { createdAt: { $lt: new Date() }, cId: common.castToObjectId(req.query.cId) }
             : { createdAt: { $lt: new Date() } };
     posts
@@ -147,7 +146,7 @@ Post.prototype.updatePost = (req, res, callback) => {
     const cId = common.castToObjectId(req.body.cId);
     const id = common.castToObjectId(req.body.postId);
   req.body.sourceId=req.body.postId;
-    console.log(id);
+    // console.log(id);
   var deletedOptions=req.body.deletedOptions ?  req.body.deletedOptions.map(function (element) {
     return common.castToObjectId( element);
           })

@@ -13,7 +13,7 @@ const notificationController= new notificationControl();
 Router.post("/events/add", common.authorizeUser, handleAddEvents);
 Router.post("/events/get/all", common.authorizeUser, handleGetEvents);
 Router.get(
-  "/events/feed/page/:pageNumber/:cId",
+  "/events/feed/page/:pageNumber",
   common.authorizeUser,
   handleGetEventsFeed
 );
