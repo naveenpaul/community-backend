@@ -14,7 +14,7 @@ const notificationController= new notificationControl();
 Router.post("/posts/add", common.authorizeUser, handleAddPosts);
 Router.post("/posts/get/all", common.authorizeUser, handleGetPosts);
 Router.get(
-  "/posts/feed/page/:pageNumber",
+  "/posts/feed/page/:pageNumber/:cId",
   common.authorizeUser,
   handleGetPostsFeed
 );
