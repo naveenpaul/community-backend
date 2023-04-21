@@ -85,9 +85,11 @@ function handleFileUploadPost(req, res) {
         req,
         res,
         function (errC, community) {
-          // we require a dummy request to get all the fields in a body for adding req
+         
           var tags=req.body.tags;
           req.body=req.query;
+          req.body.cId=community._id;
+          req.body.cName=community.name;
           req.body.tags=tags;
           // console.log(req.body.tags);
           postController.addPost(req, res, existingUser, (Err, post) => {
