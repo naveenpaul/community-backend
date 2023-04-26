@@ -13,13 +13,14 @@ const Events = require("../models/Events");
 const matrimonyUser = require('../models/matrimony_user');
 
 const commonUtility = require("../common/commonUtility");
+const Community = require("../models/community");
 const common = new commonUtility();
 const s3 = new AWS.S3();
 
 function Files() {}
 
 Files.prototype.uploadFileCloud = (filePath, uploadFileObj, res, callback) => {
-  console.log(`uplaod: ${filePath}`);
+  // console.log(`uplaod: ${filePath}`);
   fs.readFile(filePath, (fileReadErr, fileData) => {
     if (fileReadErr) {
       console.log(`err:${fileReadErr}`)
@@ -61,6 +62,7 @@ Files.prototype.uploadFileCloud = (filePath, uploadFileObj, res, callback) => {
             }
           }
         
+          // console.log(uploadFileObj.source);
           if (uploadFileObj.source == "POST") {
             posts
               .updateOne(
@@ -75,15 +77,19 @@ Files.prototype.uploadFileCloud = (filePath, uploadFileObj, res, callback) => {
                 }
               )
               .exec(function (err, results) {
-                removeFileFromStorage(filePath);
+                if(err)
+                {
+                  removeFileFromStorage(filePath);
+                  return common.sendErrorResponse(res,"Err while upload the file");
+                }
                 if (callback) {
-                  callback(null, {
-                    msg: "Successfully saved file",
+                  return callback(null, {
+                    msg: "Successfully saved file for post",
                     file: savedFile,
                   });
                 } else {
                   return res.send({
-                    msg: "Successfully saved file",
+                    msg: "Successfully saved file for post",
                     file: savedFile,
                   });
                 }
@@ -102,7 +108,7 @@ Files.prototype.uploadFileCloud = (filePath, uploadFileObj, res, callback) => {
             ).exec(function (err, results) {
               removeFileFromStorage(filePath);
               if (callback) {
-                callback(null, {
+                return callback(null, {
                   msg: "Successfully saved file",
                   file: savedFile,
                 });
@@ -113,14 +119,31 @@ Files.prototype.uploadFileCloud = (filePath, uploadFileObj, res, callback) => {
                 });
               }
             });
-          } else if(callback){
-            callback(null,),
-            {
-              msg: "Successfully saved file",
-              file: savedFile,
+          } else if(uploadFileObj.source=="COMMUNITY"){
+            // console.log(uploadFileObj.fieldname);
+            switch(uploadFileObj.fieldname){
+              case "logo":
+                {
+                  Community.updateOne(
+                    {_id:uploadFileObj.sourceId},
+                    {logo:savedFile.location})
+                    .exec(callback);
+                  break;
+                }
+              case "backgroundImg":
+                {
+                  Community.updateOne(
+                    {_id:uploadFileObj.sourceId},
+                    {backgroundImg:savedFile.location})
+                    .exec(callback);
+                }
+              };
+            return;
+            
+          } else {
+            if(callback){
+              return callback(null,savedFile);
             }
-          }
-          else {
             return res.send({
               msg: "Successfully saved file",
               file: savedFile,

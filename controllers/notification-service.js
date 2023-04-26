@@ -48,6 +48,10 @@ Notification.prototype.sendNotificationForRequest = (req, connection, type, call
         //   "notification": {"image": image},
         // },
         // condition: "('all' in topics) && !('"+userId+"' in topics) ",
+        // "android": {
+        //   "notification": {"image": image},
+        // },
+        condition: "('all' in topics) && !('" + userId + "' in topics) ",
     };
     //  console.log(type);
 
