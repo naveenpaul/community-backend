@@ -31,10 +31,11 @@ Notification.prototype.sendNotification = (req, source, type, callback) => {
 };
 
 Notification.prototype.sendNotificationForRequest = (req, connection, type, callback) => {
+    const userId = common.getUserId(req);
     // console.log(connection);
     const image=null;
     const message = {
-        to: "/topics/" + connection.receiverId,
+        to: "/topics/" + userId,
         notification: {
             title: "New request from" + ' "' + connection.ownerName + '"',
             body: "tap to checkout!",
@@ -51,7 +52,7 @@ Notification.prototype.sendNotificationForRequest = (req, connection, type, call
         // "android": {
         //   "notification": {"image": image},
         // },
-        condition: "('all' in topics) && !('" + userId + "' in topics) ",
+        // condition: "('all' in topics) && !('" + userId + "' in topics) ",
     };
     //  console.log(type);
 

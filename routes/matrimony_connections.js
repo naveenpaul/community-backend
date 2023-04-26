@@ -16,7 +16,7 @@ const matrimonyUserController = new matrimonyUser();
 Router.post("/matrimony/connection/add", common.authorizeUser, handleAddConnection);
 Router.post("/matrimony/connection/update", common.authorizeUser, handleUpdateConnection);
 Router.post("/matrimony/connection/cancel", common.authorizeUser, handleCancelConnection);
-Router.get("/matrimony/connection/feed/:pageNumber/:type", common.authorizeUser, handleGetConnectionFeed);
+Router.get("/matrimony/connection/feed/:pageNumber", common.authorizeUser, handleGetConnectionFeed);
 function handleAddConnection(req, res) {
     const userId = common.getUserId(req) || "";
 

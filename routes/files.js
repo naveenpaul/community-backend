@@ -34,7 +34,8 @@ router.post('/file/upload/event',common.authorizeUser,handleFileUploadEvent);
 router.post("/file/upload/matrimony", common.authorizeUser, handleFileuploadMatrimony);
 router.put("/file/update/post", common.authorizeUser, handleFileUpdatePost);
 router.put("/file/update/video", common.authorizeUser, handleFileUpdateVideo);
-router.put("/file/update/event", common.authorizeUser,handleFileUpdateEvent)
+router.put("/file/update/event", common.authorizeUser,handleFileUpdateEvent);
+router.put("/file/update/matrimony", common.authorizeUser, handleFileUpdateMatrimony);
 router.post("/file/list/source", common.authorizeUser, handleFileListBySource);
 
 router.get("/file/from/s3/:fileId", common.authorizeUser, handleGetFileFromS3);
@@ -57,14 +58,17 @@ function handleFileUpload(req, res) {
   if (files.length == 0) {
     return common.sendErrorResponse(res, "No file found");
   }
+  var fileName ="";
+  if(req)
+  console.log(req.body.tag)
   const uploadFile = files[0];
   const uploadObj = {
-    source: req.query.source,
-    sourceId: common.castToObjectId(req.query.sourceId),
+    source: req.body.source,
+    sourceId: common.castToObjectId(req.body.sourceId),
     type: filesController.extractTypeFromMimeType(uploadFile.mimetype),
     fileName: uploadFile.originalname,
     uniqFileName: uploadFile.originalname,
-    tag: req.query.tag ? JSON.parse(req.query.tag) : {},
+    tag: req.body.tag ?? '',
   };
 
   filesController.uploadFileCloud(uploadFile.path, uploadObj, res);
@@ -146,9 +150,9 @@ function handleFileuploadMatrimony(req, res) {
   req.body.source="MATRIMONYUSER";
   const userId = common.getUserId(req);
   const tags = req.body.tags;
-  if (files.length == 0) {
-    return common.sendErrorResponse(res, "No files found");
-  }
+  // if (files.length == 0) {
+  //   return common.sendErrorResponse(res, "No files found");
+  // }
 
   userController.findUserByUserId(
     common.castToObjectId(userId),
@@ -159,18 +163,20 @@ function handleFileuploadMatrimony(req, res) {
       }
       matrimonyController.addUser(req, res, (Err, user) => {
             if (Err || !user) {
+              console.log(Err)
               return common.sendErrorResponse(res, "Error in adding the User");
             }
             async.forEachOf(
               files,
               function (file, index,callback) {
+                imageNumber= user.profilePicCount+index;
                 const uploadObj = {
-                  source: req.body.source,
+                  source: "MATRIMONYUSER",
                   sourceId: user._id,
                   type: filesController.extractTypeFromMimeType(file.mimetype),
                   fileName: file.originalname,
-                  uniqFileName: user._id + '/'+index+path.extname(file.originalname),
-                  tag: req.body.tag ? JSON.parse(req.body.tag) : {},
+                  uniqFileName: "matrimony/"+user._id + '/'+imageNumber+".jpg" , //path.extname(file.originalname),
+                  tag: index==0? "PROFILEPIC":"",
                 };
 
                 filesController.uploadFileCloud(
@@ -184,8 +190,7 @@ function handleFileuploadMatrimony(req, res) {
                 req.params.userId = user._id;
                 matrimonyController.getUserById(req, res, function (err, newUser) {
                   return res.send({
-                    msg: "Successfully added user",
-                    data: newUser,
+                    msg: "Successfully update the Images",
                   });
                   notificationController.sendNotification(req,newPost,'post',(err,response)=>{
                     if(err)console.log('error in sending the notification');
@@ -641,6 +646,66 @@ function handleFileUpdateEvent(req,res){
     }
   );
 }
+
+function handleFileUpdateMatrimony(req, res) {
+  const files = req.files || [];
+  req.body.source="MATRIMONYUSER";
+  const userId = common.getUserId(req);
+  const tags = req.body.tags;
+  console.log(req.body)
+  // if (files.length == 0) {
+  //   return common.sendErrorResponse(res, "No files found");
+  // }
+
+  userController.findUserByUserId(
+    common.castToObjectId(userId),
+    { _id: 0 },
+    (err, existingUser) => {
+      if (err || !existingUser) {
+        return common.sendErrorResponse(res, "Error getting User Details");
+      }
+      matrimonyController.getUserByOwnerId(req, res, (Err, user) => {
+            if (Err || !user) {
+              console.log(Err)
+              return common.sendErrorResponse(res, "Error in adding the User");
+            }
+            async.forEachOf(
+              files,
+              function (file, index,callback) {
+                imageNumber= user.profilePicCount+index;
+                const uploadObj = {
+                  source: "MATRIMONYUSER",
+                  sourceId: user._id,
+                  type: filesController.extractTypeFromMimeType(file.mimetype),
+                  fileName: file.originalname,
+                  uniqFileName: "matrimony/"+user._id + '/'+imageNumber+".jpg" , //path.extname(file.originalname),
+                  tag: req.body.tag ?? {},
+                };
+
+                filesController.uploadFileCloud(
+                  file.path,
+                  uploadObj,
+                  res,
+                  callback
+                );
+              },
+              function (err, results) {
+                //delete the images
+                console.log(req.body.deletedFiles)
+                matrimonyController.removeImage(user._id,req.body.deletedFiles,res,(err,data)=>{
+                  if(err)console.log('not able to delete the images');
+                  return res.send({
+                    msg: "Successfully updated the Images",
+                  });
+                })
+                
+              }
+            );
+          });
+    }
+  );
+}
+
 function handleFileListBySource(req, res) {
   const sourceId = req.body.sourceId;
   const projection = req.body.projection || {};

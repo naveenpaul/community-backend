@@ -140,7 +140,51 @@ Files.prototype.uploadFileCloud = (filePath, uploadFileObj, res, callback) => {
               };
             return;
             
-          } else {
+          } else if(uploadFileObj.source=="MATRIMONYUSER"){
+            const update = uploadFileObj.tag=="PROFILEPIC"?{
+                $set:{
+                  profilePic: {
+                    url: savedFile.location,
+                    sourceId: savedFile._id,
+                  },
+                },
+                $inc:{profilePicCount:1}
+                
+            }:{
+              $push: {
+                thumbnail: {
+                  url: savedFile.location,
+                  sourceId: savedFile._id,
+                },
+              },
+              $inc:{profilePicCount:1}
+            };
+
+            matrimonyUser
+            .updateOne(
+              { _id: common.castToObjectId(String(uploadFileObj.sourceId)) },
+              update
+            )
+            .exec(function (err, results) {
+              if(err)
+              {
+                removeFileFromStorage(filePath);
+                return common.sendErrorResponse(res,"Err while upload the file");
+              }
+              if (callback) {
+                return callback(null, {
+                  msg: "Successfully saved file for post",
+                  file: savedFile,
+                });
+              } else {
+                return res.send({
+                  msg: "Successfully saved file for post",
+                  file: savedFile,
+                });
+              }
+            });
+          }
+          else {
             if(callback){
               return callback(null,savedFile);
             }
