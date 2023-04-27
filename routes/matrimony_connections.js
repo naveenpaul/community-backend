@@ -119,7 +119,7 @@ function handleGetConnectionFeed(req, res) {
             matrimonyUserController.getUserByOwnerId(req, res, (err, user) => {
                 MatrimonyConnectionsController.getConnectionFeed(req, user, (Err, saved) => {
                     // console.log(saved);
-                    // console.log(err);
+                    console.log(Err);
                     if (Err) {
                         return common.sendErrorResponse(res, "Error in getting the Request");
                     }

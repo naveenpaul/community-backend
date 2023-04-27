@@ -652,7 +652,7 @@ function handleFileUpdateMatrimony(req, res) {
   req.body.source="MATRIMONYUSER";
   const userId = common.getUserId(req);
   const tags = req.body.tags;
-  console.log(req.body)
+  // console.log(req.body)
   // if (files.length == 0) {
   //   return common.sendErrorResponse(res, "No files found");
   // }
@@ -672,7 +672,8 @@ function handleFileUpdateMatrimony(req, res) {
             async.forEachOf(
               files,
               function (file, index,callback) {
-                imageNumber= user.profilePicCount+index;
+                let imageNumber= user.profilePicCount+index;
+                if(req.body.tag=="PROFILEPIC")imageNumber=0;
                 const uploadObj = {
                   source: "MATRIMONYUSER",
                   sourceId: user._id,
