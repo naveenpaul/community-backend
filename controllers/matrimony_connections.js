@@ -83,6 +83,7 @@ MatrimonyConnections.prototype.getConnectionFeed = (req, user, callback) => {
                 "/" +
                 0 +
                 ".jpg",
+              userId: e.ownerId,
               fullName: e.ownerName,
               contactNumber: null,
               id: e._id,
@@ -101,6 +102,7 @@ MatrimonyConnections.prototype.getConnectionFeed = (req, user, callback) => {
                 "/" +
                 0 +
                 ".jpg",
+              userId: e.receiverId,
               fullName: e.receiverName,
               contactNumber: null,
               id: e._id,
@@ -122,6 +124,7 @@ MatrimonyConnections.prototype.getConnectionFeed = (req, user, callback) => {
                 "/" +
                 0 +
                 ".jpg",
+              userId: id,
               fullName: fullName,
               contactNumber: contactNumber,
               id: e._id,

@@ -14,6 +14,7 @@ const matrimonyUserController = new MatrimonyUser();
 Router.post("/matrimony/user/update", common.authorizeUser, handleUpdateUser);
 Router.get("/matrimony/user/feed/:pageNumber", common.authorizeUser, handleGetUserFeed);
 Router.get("/matrimony/user/current", common.authorizeUser, handleGetCurrentUser);
+Router.get("/matrimony/user", common.authorizeUser, handleGetUserById);
 
 function handleGetCurrentUser(req, res) {
     const userId = common.getUserId(req) || "";
@@ -25,6 +26,28 @@ function handleGetCurrentUser(req, res) {
                 return common.sendErrorResponse(res, "Error getting user details");
             }
             matrimonyUserController.getUserByOwnerId(req, res, (err, saved) => {
+                if (err) {
+                    return common.sendErrorResponse(res, "Error in getting the User");
+                }
+                return res.send({
+                  msg:'successfully got the user!',
+                    user: saved,
+                });
+            });
+        }
+    );
+}
+
+function handleGetUserById(req, res) {
+    const userId = common.getUserId(req) || "";
+    userController.findUserByUserId(
+        common.castToObjectId(userId),
+        { userId: "" },
+        (err, existingUser) => {
+            if (err || !existingUser) {
+                return common.sendErrorResponse(res, "Error getting user details");
+            }
+            matrimonyUserController.getUserById(req, res, (err, saved) => {
                 if (err) {
                     return common.sendErrorResponse(res, "Error in getting the User");
                 }

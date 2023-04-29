@@ -51,23 +51,23 @@ MatrimonyUser.prototype.getUserById = (req, res, callback) => {
 
 MatrimonyUser.prototype.updateUserDetails = (req, res, callback) => {
   console.log(req.body);
-  var updateOptions={    
+  var updateOptions = {
     name: req.body.name,
     contactNumber: req.body.contactNumber,
     aboutme: req.body.aboutme,
     dateOfBirth: req.body.dateOfBirth,
-    gender:req.body.gender
+    gender: req.body.gender,
   };
-  if(req.body.personalDetails)updateOptions['personalDetails']=req.body.personalDetails;
-  if(req.body.contactDetails)updateOptions['contactDetails']=req.body.contactDetails;
-  if(req.body.familyDetails)updateOptions['familyDetails']=req.body.familyDetails;
-  
+  if (req.body.personalDetails) updateOptions["personalDetails"] = req.body.personalDetails;
+  if (req.body.contactDetails) updateOptions["contactDetails"] = req.body.contactDetails;
+  if (req.body.familyDetails) updateOptions["familyDetails"] = req.body.familyDetails;
+
   matrimonyUser
     .updateOne(
       { _id: req.body.id, ownerId: common.getUserId(req) },
       {
         $set: {
-          ...updateOptions
+          ...updateOptions,
         },
       }
     )
@@ -86,11 +86,11 @@ MatrimonyUser.prototype.getUserFeed = (req, res, callback) => {
     .limit(limit)
     .lean()
     .exec((err, data) => {
-        //dont send all the data
+      //dont send all the data
       const filteredData = data.map((e) => {
         return {
           ...e,
-          contactNumber:null,
+          contactNumber: null,
           personalDetails: null,
           familyDetails: null,
         };
@@ -106,21 +106,37 @@ MatrimonyUser.prototype.getUserByOwnerId = (req, res, callback) => {
   });
 };
 
+MatrimonyUser.prototype.getUserById = (req, res, callback) => {
+  //get user to by using its id remove the private data
+  matrimonyUser
+    .findOne({ _id: common.castToObjectId(req.query.id) })
+    .lean()
+    .exec((err, user) => {
+      filtered = {
+        ...user,
+        contactNumber: null,
+        personalDetails: null,
+        familyDetails: null,
+      };
+      return callback(err, filtered);
+    });
+};
+
 MatrimonyUser.prototype.removeImage = (userId, deletedIds, res, callback) => {
-  if(deletedIds==null)return callback(null,{});
+  if (deletedIds == null) return callback(null, {});
   const fileIds = deletedIds.map((e) => common.castToObjectId(e));
   //only 1 matrimony profile per boundlses user
   matrimonyUser
     .updateOne(
       { _id: userId },
       {
-        $pull: { thumbnail: { sourceId: { $in:  fileIds } } },
+        $pull: { thumbnail: { sourceId: { $in: fileIds } } },
       }
     )
     .exec(callback);
 };
-MatrimonyUser.prototype.getUserContactNumber = (req,callback)=>{
-  const id=common.castToObjectId(req.body.receiverId);
-  matrimonyUser.find({_id:id},{contactNumber:1},callback);
-}
+MatrimonyUser.prototype.getUserContactNumber = (req, callback) => {
+  const id = common.castToObjectId(req.body.receiverId);
+  matrimonyUser.find({ _id: id }, { contactNumber: 1 }, callback);
+};
 module.exports = MatrimonyUser;
